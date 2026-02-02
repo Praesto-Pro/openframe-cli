@@ -517,9 +517,9 @@ func (w *InstallationWorkflow) loadExistingConfiguration(deploymentModeStr strin
 		return nil, fmt.Errorf("failed to create temporary values file: %w", err)
 	}
 
-	// Extract SaaS repository password from helm values for SaaS Shared mode
+	// Extract SaaS repository password from helm values for SaaS modes (both Shared and Tenant)
 	var saasConfig *types.SaaSConfig
-	if deploymentMode == types.DeploymentModeSaaSShared {
+	if deploymentMode == types.DeploymentModeSaaSShared || deploymentMode == types.DeploymentModeSaaS {
 		repositoryPassword := modifier.GetSaaSRepositoryPassword(values)
 		if repositoryPassword == "" {
 			return nil, fmt.Errorf("repository password not found in helm-values.yaml under deployment.saas.repository.password")
