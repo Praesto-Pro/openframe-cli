@@ -1,313 +1,267 @@
 # Quick Start Guide
 
-Get up and running with OpenFrame CLI in just 5 minutes! This guide will take you from zero to a fully functional OpenFrame Kubernetes cluster.
+Get OpenFrame CLI running in under 5 minutes with this streamlined setup process.
 
-[![OpenFrame v0.3.7 - Enhanced Developer Experience](https://img.youtube.com/vi/O8hbBO5Mym8/maxresdefault.jpg)](https://www.youtube.com/watch?v=O8hbBO5Mym8)
-
-## TL;DR - One Command Setup
-
-If you just want to get started immediately:
+## TL;DR Installation
 
 ```bash
-# Clone and build
-git clone https://github.com/flamingo-stack/openframe-oss-tenant.git
-cd openframe-oss-tenant
-go build -o openframe .
+# 1. Download OpenFrame CLI
+# Windows AMD64
+curl -LO https://github.com/flamingo-stack/openframe-cli/releases/latest/download/openframe-cli_windows_amd64.zip
+unzip openframe-cli_windows_amd64.zip
 
-# Bootstrap complete environment
-./openframe bootstrap
+# Linux/macOS - Replace with your platform
+curl -LO https://github.com/flamingo-stack/openframe-cli/releases/latest/download/openframe-cli_linux_amd64.tar.gz
+tar -xzf openframe-cli_linux_amd64.tar.gz
+
+# 2. Make executable and add to PATH (Linux/macOS)
+chmod +x openframe-cli
+sudo mv openframe-cli /usr/local/bin/openframe
+
+# 3. Verify installation
+openframe --version
+
+# 4. Bootstrap complete environment
+openframe bootstrap
+
+# 5. Access ArgoCD dashboard
+kubectl port-forward -n argocd svc/argocd-server 8080:443 &
+open https://localhost:8080
 ```
-
-This single command will create a K3D cluster, install ArgoCD, and set up the complete OpenFrame platform. Skip to [Verify Installation](#verify-installation) to confirm everything worked.
 
 ## Step-by-Step Installation
 
-### Step 1: Clone the Repository
+### Step 1: Download OpenFrame CLI
+
+Choose your platform and download the latest release:
+
+**Windows AMD64:**
+```bash
+curl -LO https://github.com/flamingo-stack/openframe-cli/releases/latest/download/openframe-cli_windows_amd64.zip
+```
+
+**Linux AMD64:**
+```bash
+curl -LO https://github.com/flamingo-stack/openframe-cli/releases/latest/download/openframe-cli_linux_amd64.tar.gz
+```
+
+**macOS:**
+```bash
+curl -LO https://github.com/flamingo-stack/openframe-cli/releases/latest/download/openframe-cli_darwin_amd64.tar.gz
+```
+
+### Step 2: Extract and Install
+
+**Windows:**
+```bash
+unzip openframe-cli_windows_amd64.zip
+# Add the directory to your PATH environment variable
+```
+
+**Linux/macOS:**
+```bash
+tar -xzf openframe-cli_linux_amd64.tar.gz
+chmod +x openframe-cli
+sudo mv openframe-cli /usr/local/bin/openframe
+```
+
+### Step 3: Verify Installation
 
 ```bash
-git clone https://github.com/flamingo-stack/openframe-oss-tenant.git
-cd openframe-oss-tenant
+openframe --version
 ```
 
-### Step 2: Build the CLI
-
-```bash
-go build -o openframe .
-```
-
-**Expected output:**
-```text
-go: downloading modules...
-Built successfully: openframe
-```
-
-### Step 3: Verify CLI Installation
-
-```bash
-./openframe --version
-```
-
-**Expected output:**
+Expected output:
 ```text
 OpenFrame CLI v1.0.0
 Commit: abc123def
 Built: 2024-01-01T00:00:00Z
 ```
 
-### Step 4: Run Bootstrap Command
+## One-Command Setup
 
-The bootstrap command will:
-1. Check and install prerequisites (K3D, Helm, kubectl)
-2. Create a local K3D Kubernetes cluster
-3. Install and configure ArgoCD
-4. Deploy the OpenFrame app-of-apps pattern
+The fastest way to get a complete OpenFrame environment:
 
 ```bash
-./openframe bootstrap
+openframe bootstrap
 ```
 
-**Interactive wizard will guide you through:**
+This single command will:
+
+1. ✅ **Check Prerequisites** - Verify Docker, install missing tools
+2. ✅ **Create K3D Cluster** - Local Kubernetes cluster with networking
+3. ✅ **Install ArgoCD** - GitOps continuous delivery platform  
+4. ✅ **Deploy Charts** - App-of-apps pattern for service management
+5. ✅ **Configure Certificates** - Local HTTPS with trusted certificates
+6. ✅ **Verify Health** - Ensure all services are running correctly
+
+### Bootstrap Process
 
 ```text
-🚀 OpenFrame Bootstrap Wizard
+🚀 OpenFrame Bootstrap
+├── Prerequisites Check ✓
+├── Creating K3D cluster "openframe-local" ✓
+├── Installing ArgoCD ✓
+├── Configuring GitOps repository ✓
+├── Deploying applications ✓
+├── Generating certificates ✓
+└── Verification complete ✓
 
-┌─────────────────────────────────────────┐
-│  Welcome to OpenFrame CLI Bootstrap!    │
-│                                         │
-│  This wizard will:                      │
-│  • Create a K3D Kubernetes cluster      │
-│  • Install ArgoCD for GitOps           │
-│  • Deploy OpenFrame applications       │
-│                                         │
-│  Prerequisites will be checked and     │
-│  installed automatically.              │
-└─────────────────────────────────────────┘
+🎉 Your OpenFrame environment is ready!
 
-Checking prerequisites...
-✅ Docker found and running
-⬇️  Installing K3D...
-✅ K3D installed successfully
-⬇️  Installing Helm...
-✅ Helm installed successfully
-⬇️  Installing kubectl...
-✅ kubectl installed successfully
+Access Points:
+• ArgoCD: https://argocd.local.openframe.ai
+• API Gateway: https://api.local.openframe.ai
+• Documentation: https://docs.local.openframe.ai
 
-Creating K3D cluster 'openframe-local'...
-✅ Cluster created successfully
-
-Installing ArgoCD...
-✅ ArgoCD deployed and ready
-
-Installing OpenFrame applications...
-✅ App-of-apps pattern deployed
-✅ All applications synced and healthy
-
-🎉 Bootstrap completed successfully!
-
-Cluster: openframe-local
-ArgoCD UI: https://localhost:8080
-Username: admin
-Password: [generated password shown here]
-
-Next steps:
-• Run './openframe cluster status' to check cluster health
-• Run './openframe chart install' to deploy additional charts
-• Visit ArgoCD UI to monitor applications
+Next Steps:
+• Run 'openframe cluster status' to view cluster details
+• Use 'openframe dev intercept' for service development
+• Visit the First Steps guide for feature exploration
 ```
 
-## Verify Installation
+## Verify Your Installation
 
 ### Check Cluster Status
 
 ```bash
-./openframe cluster status
+openframe cluster status
 ```
 
-**Expected output:**
-```text
-📊 Cluster Status: openframe-local
-
-Cluster Info:
-✅ Status: Running
-✅ Nodes: 1/1 Ready
-✅ API Server: https://127.0.0.1:6443
-
-ArgoCD Status:
-✅ Server: Ready
-✅ Applications: 5/5 Synced
-✅ UI: https://localhost:8080
-
-Resource Usage:
-📈 CPU: 15% (2 cores used)
-📊 Memory: 45% (12GB used)
-💽 Storage: 25% (15GB used)
-```
-
-### List Running Applications
+### List Running Services
 
 ```bash
-kubectl get applications -n argocd
+kubectl get pods -A
 ```
 
-**Expected output:**
-```text
-NAME              SYNC STATUS   HEALTH STATUS   AGE
-api-service       Synced        Healthy         2m
-gateway-service   Synced        Healthy         2m
-ui-service        Synced        Healthy         2m
-monitoring        Synced        Healthy         2m
-ingress-nginx     Synced        Healthy         2m
-```
-
-### Access ArgoCD UI
-
-1. Open your browser to `https://localhost:8080`
-2. Login with the credentials shown during bootstrap
-3. Explore your deployed applications
-
-## Basic Usage Examples
-
-### Create Additional Clusters
+### Access ArgoCD Dashboard
 
 ```bash
-# Create a new cluster for development
-./openframe cluster create dev-cluster
+# Port forward ArgoCD (run in background)
+kubectl port-forward -n argocd svc/argocd-server 8080:443 &
+
+# Get admin password
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+
+# Open browser
+open https://localhost:8080
+```
+
+**Login Credentials:**
+- Username: `admin`
+- Password: Use the decoded secret from above
+
+## Your First OpenFrame Workflow
+
+### 1. Explore Available Commands
+
+```bash
+openframe --help
+```
+
+### 2. Check Cluster Information
+
+```bash
+# Detailed cluster status
+openframe cluster status --detailed
 
 # List all clusters
-./openframe cluster list
+openframe cluster list
 ```
 
-### Install Additional Charts
+### 3. View Deployed Applications
 
 ```bash
-# Interactive chart installation
-./openframe chart install
-
-# This will launch a wizard for:
-# • Selecting deployment mode (GHCR, SaaS, Local)
-# • Configuring Helm values
-# • Monitoring installation progress
-```
-
-### Development Tools
-
-```bash
-# Set up Telepresence intercept
-./openframe dev intercept api-service
-
-# Scaffold a new service
-./openframe dev scaffold new-service
-```
-
-## What Just Happened?
-
-The bootstrap process created a complete OpenFrame development environment:
-
-```mermaid
-graph TD
-    A[Bootstrap Command] --> B[Prerequisites Check]
-    B --> C[K3D Cluster Creation]
-    C --> D[ArgoCD Installation]
-    D --> E[App-of-Apps Deployment]
-    E --> F[Application Sync]
-    F --> G[Ready to Use!]
-    
-    B --> H[Auto-Install K3D]
-    B --> I[Auto-Install Helm]
-    B --> J[Auto-Install kubectl]
-    
-    C --> K[Local Registry]
-    C --> L[Port Forwarding]
-    
-    D --> M[ArgoCD Server]
-    D --> N[ArgoCD UI]
-    
-    E --> O[API Service]
-    E --> P[Gateway Service]
-    E --> Q[UI Service]
-    E --> R[Monitoring]
-```
-
-## Troubleshooting Common Issues
-
-### Port Already in Use
-
-If you get port conflicts:
-
-```bash
-# Check what's using port 6443 or 8080
-sudo lsof -i :6443
-sudo lsof -i :8080
-
-# Delete existing cluster and try again
-./openframe cluster delete openframe-local
-./openframe bootstrap
-```
-
-### Prerequisites Installation Failed
-
-```bash
-# Check system permissions
-docker ps  # Should work without sudo
-
-# On Linux, add user to docker group if needed
-sudo usermod -aG docker $USER
-newgrp docker
-
-# Try bootstrap again
-./openframe bootstrap
-```
-
-### ArgoCD Not Accessible
-
-```bash
-# Check port forwarding
-kubectl get svc -n argocd
-
-# Restart port forwarding
-kubectl port-forward svc/argocd-server -n argocd 8080:443
-```
-
-### Applications Not Syncing
-
-```bash
-# Check ArgoCD application status
+# ArgoCD applications
 kubectl get applications -n argocd
 
-# View application details
-kubectl describe application api-service -n argocd
-
-# Force sync through CLI
-./openframe chart install --force-sync
+# All pods across namespaces
+kubectl get pods --all-namespaces
 ```
 
-## Clean Up
-
-To remove everything and start fresh:
+### 4. Development Workflow
 
 ```bash
-# Delete the cluster (removes everything)
-./openframe cluster delete openframe-local
+# Start a development intercept
+openframe dev intercept
 
-# Clean up any remaining K3D clusters
-k3d cluster delete --all
+# Generate a new service scaffold
+openframe dev scaffold
+```
 
-# Remove the CLI binary if desired
-rm ./openframe
+## Expected Results
+
+After successful bootstrap, you should see:
+
+### ✅ Running Services
+
+```bash
+kubectl get pods -A
+```
+```text
+NAMESPACE     NAME                                READY   STATUS
+argocd        argocd-server-xxx                   1/1     Running
+argocd        argocd-application-controller-xxx   1/1     Running  
+argocd        argocd-repo-server-xxx              1/1     Running
+kube-system   coredns-xxx                         1/1     Running
+```
+
+### ✅ Network Access
+
+- Local services accessible via `.local.openframe.ai` domains
+- HTTPS certificates trusted by your browser
+- Port forwarding available for external access
+
+### ✅ GitOps Ready
+
+- ArgoCD monitoring your configured Git repositories
+- Automatic synchronization of application manifests
+- Visual application dependency graph
+
+## Troubleshooting Quick Issues
+
+### Docker Not Running
+
+```bash
+# Start Docker service
+sudo systemctl start docker  # Linux
+# or restart Docker Desktop application
+```
+
+### Port Conflicts
+
+```bash
+# Check what's using common ports
+lsof -i :8080
+lsof -i :6443
+
+# Kill conflicting processes or use different ports
+```
+
+### Certificate Issues
+
+```bash
+# Regenerate certificates
+mkcert -install
+openframe chart install --regenerate-certs
 ```
 
 ## Next Steps
 
-Now that you have OpenFrame CLI running:
+🎉 **Congratulations!** You now have a fully functional OpenFrame environment.
 
-1. **[First Steps Guide](first-steps.md)** - Learn the essential commands and workflows
-2. **[Development Setup](../development/setup/local-development.md)** - Set up a development environment
-3. **[Architecture Overview](../development/architecture/README.md)** - Understand how the system works
+Continue your journey:
 
-## Getting Help
+1. **[First Steps Guide](first-steps.md)** - Explore key features and workflows
+2. **[Development Setup](../development/setup/local-development.md)** - Configure your IDE and development environment  
+3. **[Architecture Overview](../development/architecture/README.md)** - Understand the system design
 
-- Run `./openframe --help` for command documentation
-- Join our [OpenMSP Slack community](https://join.slack.com/t/openmsp/shared_invite/zt-36bl7mx0h-3~U2nFH6nqHqoTPXMaHEHA)
-- Each command includes detailed help: `./openframe <command> --help`
+## Need Help?
 
-The CLI is designed to be self-documenting with interactive wizards and comprehensive help text. Most operations include progress indicators and clear error messages to guide you through any issues.
+- **Community Support**: Join our Slack at https://www.openmsp.ai/
+- **Documentation**: Explore additional guides in this documentation
+- **Video Tutorials**: Watch our YouTube channel for walkthroughs
+
+[![OpenFrame Product Walkthrough (Beta Access)](https://img.youtube.com/vi/awc-yAnkhIo/maxresdefault.jpg)](https://www.youtube.com/watch?v=awc-yAnkhIo)
+
+You're now ready to build and deploy MSP services with OpenFrame!

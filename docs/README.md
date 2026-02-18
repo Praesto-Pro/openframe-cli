@@ -1,127 +1,168 @@
 # OpenFrame CLI Documentation
 
-Welcome to the comprehensive documentation for OpenFrame CLI - a modern, interactive command-line tool for managing Kubernetes clusters and development workflows.
+Welcome to the comprehensive documentation for OpenFrame CLI, a modern command-line tool for managing OpenFrame Kubernetes clusters and development workflows.
 
 ## 📚 Table of Contents
 
-### 🚀 Getting Started
+### Getting Started
 
-New to OpenFrame CLI? Start here to get up and running quickly:
+New to OpenFrame CLI? Start here for a smooth onboarding experience:
 
-- [Introduction](getting-started/introduction.md) - Overview of OpenFrame CLI capabilities and architecture
-- [Prerequisites](getting-started/prerequisites.md) - System requirements and dependency setup  
-- [Quick Start](getting-started/quick-start.md) - Get OpenFrame CLI running in 5 minutes
-- [First Steps](getting-started/first-steps.md) - Essential commands and workflows after installation
+- [Introduction](./getting-started/introduction.md) - Overview and key concepts
+- [Prerequisites](./getting-started/prerequisites.md) - System requirements and setup
+- [Quick Start](./getting-started/quick-start.md) - Get running in 5 minutes
+- [First Steps](./getting-started/first-steps.md) - Explore core features and workflows
 
-### 🔧 Development
+### Development
 
-Guides for developers working with OpenFrame CLI:
+Set up your development environment and learn the contribution workflow:
 
-- [Development Overview](development/README.md) - Development environment and workflow overview
-- [Local Development Setup](development/setup/local-development.md) - Set up your development environment
-- [Environment Configuration](development/setup/environment.md) - Configure development tools and settings
-- [Contributing Guidelines](development/contributing/guidelines.md) - How to contribute to the project
-- [Architecture Guide](development/architecture/README.md) - System design and component architecture  
-- [Testing Guide](development/testing/README.md) - Testing standards and practices
-- [Security Guidelines](development/security/README.md) - Security best practices and considerations
+- [Development Overview](./development/README.md) - Development guide overview
+- [Local Development Setup](./development/setup/local-development.md) - Clone, build, and run from source
+- [Environment Configuration](./development/setup/environment.md) - Configure your development environment
+- [Architecture Guide](./development/architecture/README.md) - Understand the system design
 
-### 📖 Reference
+### Reference
 
 Technical reference documentation:
 
-- [Architecture Overview](architecture/overview.md) - Complete system architecture and component relationships
+- [Architecture Overview](./architecture/overview.md) - System architecture and component relationships
 
-### 🎨 Visual Documentation
+### Diagrams
 
-Architecture diagrams and visual guides:
+Visual documentation and architecture diagrams:
 
-- [Architecture Diagrams](diagrams/architecture/README.md) - Visual documentation of system architecture, workflows, and data flows
+```text
+docs/diagrams/architecture/
+├── high-level-architecture-diagram.mmd    # System overview
+├── service-dependencies-diagram.mmd       # Service relationships  
+├── bootstrap-command-sequence.mmd         # Bootstrap workflow
+└── README.md                              # Diagram documentation
+```
+
+View the Mermaid diagrams in your IDE or convert them using Mermaid CLI for web viewing.
+
+### CLI Tools
+
+The OpenFrame CLI is maintained in this repository and provides comprehensive command-line functionality for:
+- Kubernetes cluster management (K3D)
+- ArgoCD and Helm chart installation
+- Development workflows with service intercepts
+- GitOps automation and deployment
+
+For installation and usage, see the [Quick Start guide](./getting-started/quick-start.md) above.
 
 ## 🚀 Quick Navigation
 
 ### For New Users
-1. **[Introduction](getting-started/introduction.md)** - Understand what OpenFrame CLI does
-2. **[Prerequisites](getting-started/prerequisites.md)** - Prepare your system  
-3. **[Quick Start](getting-started/quick-start.md)** - Install and run your first cluster
-4. **[First Steps](getting-started/first-steps.md)** - Learn essential operations
+1. **[Introduction](./getting-started/introduction.md)** - Learn what OpenFrame CLI does
+2. **[Quick Start](./getting-started/quick-start.md)** - Install and bootstrap your first environment
+3. **[First Steps](./getting-started/first-steps.md)** - Explore key features
 
-### For Developers
-1. **[Local Development Setup](development/setup/local-development.md)** - Set up development environment
-2. **[Architecture Guide](development/architecture/README.md)** - Understand the codebase structure
-3. **[Contributing Guidelines](development/contributing/guidelines.md)** - Learn contribution workflow
-4. **[Testing Guide](development/testing/README.md)** - Write and run tests
+### For Developers  
+1. **[Local Development](./development/setup/local-development.md)** - Set up development environment
+2. **[Architecture Guide](./development/architecture/README.md)** - Understand the codebase
+3. **[Contributing Guidelines](../CONTRIBUTING.md)** - Learn the contribution process
 
-### For Platform Engineers
-1. **[Architecture Overview](architecture/overview.md)** - System design and components
-2. **[Security Guidelines](development/security/README.md)** - Security considerations
-3. **[Architecture Diagrams](diagrams/architecture/README.md)** - Visual system documentation
+### For Advanced Users
+1. **[Architecture Overview](./architecture/overview.md)** - Deep dive into system design
+2. **[Command Reference](./getting-started/first-steps.md)** - Complete command documentation
+3. **[Troubleshooting](./getting-started/quick-start.md#troubleshooting-quick-issues)** - Common issues and solutions
 
-## 🎯 What is OpenFrame CLI?
+## 🎯 Key Features Documented
 
-OpenFrame CLI is a powerful Go-based command-line interface that orchestrates complex Kubernetes operations with simple, interactive commands. It provides:
+### One-Command Bootstrap
+Learn how `openframe bootstrap` creates a complete Kubernetes environment:
+- K3D cluster creation with networking
+- ArgoCD installation and configuration
+- Certificate management with mkcert
+- Service deployment with app-of-apps pattern
 
-- **🚀 One-Command Bootstrap**: Create complete K3D clusters with ArgoCD instantly
-- **🔧 Cluster Management**: Full lifecycle management of local Kubernetes clusters
-- **📦 Chart Installation**: Interactive deployment with Helm and ArgoCD
-- **🛠️ Developer Tools**: Telepresence intercepts and scaffolding utilities
-- **🎯 Smart Prerequisites**: Automatic tool detection and installation
+### Development Workflows
+Discover powerful development tools:
+- Service intercepts with Telepresence
+- Hot reload development with Skaffold
+- Code scaffolding for new services
+- GitOps workflows with ArgoCD
 
-## 🏗️ Architecture Overview
+### Cluster Management
+Master Kubernetes cluster operations:
+- Create, delete, and list clusters
+- Status monitoring and health checks
+- Custom configuration options
+- Multi-cluster management
 
-```mermaid
-graph TB
-    CLI[CLI Layer - Cobra Commands] --> BS[Bootstrap Service]
-    CLI --> CS[Chart Service] 
-    CLI --> CLS[Cluster Service]
-    CLI --> DS[Dev Service]
-    
-    BS --> CSvc[Chart Services]
-    BS --> CLSvc[Cluster Services]
-    
-    CSvc --> HP[Helm Provider]
-    CSvc --> AP[ArgoCD Provider]
-    CSvc --> GP[Git Provider]
-    
-    CLS --> K3D[K3D Manager]
-    CLS --> UI[UI Components]
-    
-    DS --> TP[Telepresence Provider]
-    DS --> KP[Kubectl Provider]
-    DS --> SP[Scaffold Provider]
-```
+## 📖 Documentation Standards
+
+This documentation follows these principles:
+- **Comprehensive**: Covers all features and use cases
+- **Beginner-Friendly**: Assumes minimal prior knowledge
+- **Task-Oriented**: Focuses on practical workflows
+- **Well-Tested**: Examples are verified and up-to-date
 
 ## 🔗 External Resources
 
-### CLI Implementation
-The OpenFrame CLI main codebase is maintained in a separate repository:
-
-- **Repository**: [flamingo-stack/openframe-oss-tenant](https://github.com/flamingo-stack/openframe-oss-tenant)
-- **Documentation**: [CLI Documentation](https://github.com/flamingo-stack/openframe-oss-tenant/tree/main/docs)
-
-> **Important**: CLI tools are NOT located in this repository. Always refer to the external repository for installation and usage instructions.
-
 ### Community & Support
-- **Slack Community**: [OpenMSP Slack](https://join.slack.com/t/openmsp/shared_invite/zt-36bl7mx0h-3~U2nFH6nqHqoTPXMaHEHA)
-- **Platform**: [OpenFrame.ai](https://openframe.ai)
-- **Company**: [Flamingo.run](https://flamingo.run)
+- **OpenMSP Slack Community**: https://www.openmsp.ai/
+- **Slack Invite**: https://join.slack.com/t/openmsp/shared_invite/zt-36bl7mx0h-3~U2nFH6nqHqoTPXMaHEHA
+- **Flamingo Platform**: https://flamingo.run
+- **OpenFrame Platform**: https://openframe.ai
 
-> **Note**: We don't use GitHub Issues or GitHub Discussions. All support and community discussions happen in our OpenMSP Slack community.
+### Related Projects
+- **[OpenFrame OSS Tenant](https://github.com/flamingo-stack/openframe-oss-tenant)** - Main platform repository
+- **[OpenFrame Documentation](https://github.com/flamingo-stack/openframe-oss-tenant/tree/main/docs)** - Platform-wide documentation
 
-## 📖 Quick Links
+## 📝 Contributing to Documentation
 
-- [Project README](../README.md) - Main project README with installation and overview
-- [Contributing Guide](../CONTRIBUTING.md) - How to contribute to OpenFrame CLI
-- [License](../LICENSE.md) - License information and terms
+Help improve these docs:
 
-## 🆘 Need Help?
+1. **Found an Issue?** Report it in our Slack community
+2. **Want to Contribute?** See the [Contributing Guidelines](../CONTRIBUTING.md)
+3. **Need Clarification?** Ask questions in the #documentation channel
 
-1. **Built-in Help**: Use `./openframe <command> --help` for command-specific help
-2. **Documentation**: Browse the sections above for comprehensive guides  
-3. **Community Support**: Join our [Slack community](https://join.slack.com/t/openmsp/shared_invite/zt-36bl7mx0h-3~U2nFH6nqHqoTPXMaHEHA)
-4. **Interactive Wizards**: Most commands include step-by-step guidance
+### Documentation Structure
+```text
+docs/
+├── getting-started/     # New user onboarding
+├── development/         # Developer workflows  
+├── architecture/        # Technical reference
+├── diagrams/           # Visual documentation
+└── README.md           # This index file
+```
 
-The CLI is designed to be intuitive and self-guiding, with interactive wizards that walk you through complex operations.
+## 🎥 Video Resources
+
+Visual learners can watch our video tutorials:
+
+- **Product Walkthrough**: Overview of OpenFrame capabilities
+- **Developer Experience**: v0.3.7 feature highlights
+- **Getting Started**: Step-by-step installation and setup
+
+## 📊 Quick Links
+
+- [Project README](../README.md) - Main project overview and installation
+- [Contributing Guidelines](../CONTRIBUTING.md) - How to contribute code and documentation
+- [License Information](../LICENSE.md) - Flamingo AI Unified License v1.0
 
 ---
 
-*Documentation generated by [OpenFrame Doc Orchestrator](https://github.com/flamingo-stack/openframe-oss-tenant)*
+## 🔍 What's Next?
+
+**New to OpenFrame CLI?**  
+→ Start with the [Introduction](./getting-started/introduction.md)
+
+**Ready to Install?**  
+→ Follow the [Quick Start Guide](./getting-started/quick-start.md)
+
+**Want to Contribute?**  
+→ Set up [Local Development](./development/setup/local-development.md)
+
+**Need Architecture Details?**  
+→ Read the [Architecture Overview](./architecture/overview.md)
+
+---
+
+*Documentation generated by [OpenFrame Doc Orchestrator](https://github.com/flamingo-stack/openframe-cli)*
+
+**Last Updated**: Generated from CodeWiki analysis  
+**Version**: Matches OpenFrame CLI releases

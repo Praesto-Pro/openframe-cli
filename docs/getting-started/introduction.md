@@ -1,123 +1,112 @@
-# OpenFrame CLI Introduction
+# Introduction to OpenFrame CLI
 
-Welcome to **OpenFrame CLI** - a modern, interactive command-line tool designed to streamline Kubernetes cluster management and development workflows for the OpenFrame platform.
-
-## What is OpenFrame CLI?
-
-OpenFrame CLI is a powerful Go-based command-line interface that orchestrates complex Kubernetes operations with simple, interactive commands. It bridges the gap between development and deployment by providing seamless cluster lifecycle management, automated chart installation with ArgoCD, and developer-friendly tools for service intercepts and scaffolding.
+Welcome to OpenFrame CLI, a modern command-line tool that simplifies Kubernetes cluster management and development workflows for MSP (Managed Service Provider) platforms.
 
 [![OpenFrame Product Walkthrough (Beta Access)](https://img.youtube.com/vi/awc-yAnkhIo/maxresdefault.jpg)](https://www.youtube.com/watch?v=awc-yAnkhIo)
 
+## What is OpenFrame CLI?
+
+OpenFrame CLI is a powerful, interactive command-line interface built in Go that replaces complex shell scripts with a unified tool for managing:
+
+- **Kubernetes Clusters**: Create, manage, and destroy local K3D clusters
+- **GitOps Workflows**: Automated ArgoCD and Helm chart deployment
+- **Development Tools**: Service intercepts, scaffolding, and hot-reload development
+- **MSP Platform Integration**: Seamless integration with the broader OpenFrame ecosystem
+
 ## Key Features
 
-### 🚀 **One-Command Bootstrap**
-- Create and configure complete K3D clusters instantly
-- Automated ArgoCD installation and app-of-apps setup
-- GitHub integration for seamless repository management
+### 🚀 One-Command Bootstrap
+```bash
+openframe bootstrap
+```
+Creates a complete Kubernetes environment with ArgoCD, networking, and certificates in minutes.
 
-### 🔧 **Cluster Lifecycle Management**
-- Create, delete, list, and monitor K3D clusters
-- Cross-platform support (Linux, macOS, Windows with WSL)
-- Built-in cleanup and status monitoring
+### 🎯 Interactive Experience
+- Wizard-driven setup for new users
+- Smart defaults with customization options
+- Real-time progress tracking and feedback
 
-### 📦 **Chart Management**
-- Interactive deployment mode selection (GHCR, SaaS, Local)
-- Helm values configuration wizard
-- ArgoCD application synchronization monitoring
+### 🔧 Developer-Friendly Tools
+- **Service Intercepts**: Debug microservices locally using Telepresence
+- **Hot Reload**: Skaffold integration for rapid development cycles  
+- **Scaffolding**: Generate new services with best practices
 
-### 🛠️ **Developer Tools**
-- Telepresence service intercepts for local development
-- Skaffold scaffolding for new services
-- Kubernetes namespace and service management
+### 🏗️ Enterprise-Ready Architecture
+- Clean separation of concerns with layered architecture
+- Comprehensive error handling and retry mechanisms
+- Extensive testing coverage and validation
 
-### 🎯 **Smart Prerequisites**
-- Automatic tool detection and installation
-- Support for K3D, Helm, kubectl, Telepresence
-- Windows-specific path handling and WSL compatibility
+## Target Audience
+
+**Primary Users:**
+- **MSP Developers**: Building and maintaining OpenFrame platform services
+- **DevOps Engineers**: Setting up local development and testing environments
+- **Platform Engineers**: Managing Kubernetes infrastructure for MSP operations
+
+**Use Cases:**
+- Local development environment setup
+- Testing and validation workflows
+- CI/CD pipeline integration
+- MSP service deployment and management
 
 ## Architecture Overview
 
-OpenFrame CLI follows a clean, layered architecture with clear separation of concerns:
-
 ```mermaid
 graph TB
-    CLI[CLI Layer - Cobra Commands] --> BS[Bootstrap Service]
-    CLI --> CS[Chart Service] 
-    CLI --> CLS[Cluster Service]
-    CLI --> DS[Dev Service]
+    CLI[OpenFrame CLI] --> Bootstrap[Bootstrap Service]
+    CLI --> Cluster[Cluster Management]
+    CLI --> Charts[Chart Installation]
+    CLI --> Dev[Development Tools]
     
-    BS --> CSvc[Chart Services]
-    BS --> CLSvc[Cluster Services]
+    Bootstrap --> K3D[K3D Clusters]
+    Bootstrap --> ArgoCD[ArgoCD GitOps]
     
-    CSvc --> HP[Helm Provider]
-    CSvc --> AP[ArgoCD Provider]
-    CSvc --> GP[Git Provider]
+    Cluster --> Create[Create/Delete]
+    Cluster --> Status[Status/List]
     
-    CLS --> K3D[K3D Manager]
-    CLS --> UI[UI Components]
+    Charts --> Helm[Helm Charts]
+    Charts --> GitOps[GitOps Workflows]
     
-    DS --> TP[Telepresence Provider]
-    DS --> KP[Kubectl Provider]
-    DS --> SP[Scaffold Provider]
-    
-    HP --> Helm[Helm Binary]
-    AP --> ArgoCD[ArgoCD APIs]
-    GP --> Git[Git Commands]
-    K3D --> K3DCmd[K3D Binary]
-    TP --> TelepresenceCmd[Telepresence Binary]
-    KP --> KubectlCmd[Kubectl Binary]
+    Dev --> Intercept[Service Intercepts]
+    Dev --> Scaffold[Code Generation]
 ```
 
-## Who Should Use OpenFrame CLI?
+## Core Benefits
 
-### **DevOps Engineers**
-- Simplify Kubernetes cluster provisioning
-- Automate ArgoCD deployments
-- Standardize development environments
+| Benefit | Description |
+|---------|-------------|
+| **Simplified Setup** | Replace dozens of manual steps with single commands |
+| **Consistent Environments** | Identical local clusters for all team members |
+| **Rapid Development** | Service intercepts and hot-reload capabilities |
+| **GitOps Ready** | Built-in ArgoCD integration for continuous delivery |
+| **MSP Optimized** | Designed specifically for MSP platform requirements |
 
-### **Platform Engineers**
-- Manage multiple OpenFrame deployments
-- Configure chart installations consistently
-- Monitor application synchronization
+## Integration with OpenFrame Ecosystem
 
-### **Developers**
-- Set up local development environments quickly
-- Test services with Telepresence intercepts
-- Scaffold new microservices efficiently
+OpenFrame CLI is part of the broader OpenFrame platform that includes:
 
-### **MSP Teams**
-- Deploy OpenFrame platforms rapidly
-- Standardize client environment setups
-- Manage multi-tenant configurations
+- **Mingo AI**: Intelligent technician assistant for MSP operations
+- **Fae**: Client-facing AI interface
+- **OpenFrame Platform**: Unified MSP management interface
+- **GitOps Workflows**: Automated deployment and management
 
-## Core Components
-
-| Component | Purpose |
-|-----------|---------|
-| **Bootstrap** | One-command cluster + chart setup |
-| **Cluster Management** | K3D cluster lifecycle operations |
-| **Chart Installation** | ArgoCD and app-of-apps deployment |
-| **Dev Tools** | Telepresence intercepts and scaffolding |
-| **Prerequisites** | Automatic tool validation and installation |
+The CLI serves as the foundational development tool that enables the entire platform ecosystem.
 
 ## Getting Started
 
-Ready to dive in? Follow these steps:
+Ready to begin? Follow these next steps:
 
-1. **[Check Prerequisites](prerequisites.md)** - Ensure your system is ready
-2. **[Quick Start Guide](quick-start.md)** - Get up and running in 5 minutes
-3. **[First Steps](first-steps.md)** - Explore key features after installation
+1. **[Prerequisites](prerequisites.md)** - Ensure your system meets requirements
+2. **[Quick Start](quick-start.md)** - Get running in 5 minutes
+3. **[First Steps](first-steps.md)** - Explore core features and workflows
 
-## Community & Support
+## Support and Community
 
-- **Slack Community**: [OpenMSP Slack](https://join.slack.com/t/openmsp/shared_invite/zt-36bl7mx0h-3~U2nFH6nqHqoTPXMaHEHA)
-- **Platform**: [OpenFrame.ai](https://openframe.ai)
-- **Company**: [Flamingo.run](https://flamingo.run)
+- **Documentation**: Comprehensive guides in the `/docs` directory
+- **Community**: Join the OpenMSP Slack community at https://www.openmsp.ai/
+- **Issues**: Report bugs and request features via our Slack community
+- **Updates**: Follow release announcements on our YouTube channel
 
-> **Note**: We don't use GitHub Issues or GitHub Discussions. All support and community discussions happen in our OpenMSP Slack community.
+[![OpenFrame v0.3.7 - Enhanced Developer Experience](https://img.youtube.com/vi/O8hbBO5Mym8/maxresdefault.jpg)](https://www.youtube.com/watch?v=O8hbBO5Mym8)
 
-## What's Next?
-
-This introduction gives you a high-level overview of OpenFrame CLI's capabilities. Continue with the prerequisites guide to prepare your environment, or jump straight to the quick start if you're ready to get hands-on.
-
-The CLI is designed to be intuitive and self-guiding, with interactive wizards that walk you through complex operations. Each command includes help text and validation to ensure successful execution.
+The OpenFrame CLI empowers MSP developers to build, deploy, and maintain enterprise-grade platforms with the simplicity of modern development tools.
