@@ -1,210 +1,194 @@
 # Development Documentation
 
-Welcome to the OpenFrame CLI development documentation. This section provides comprehensive guides for developers contributing to, extending, or deeply understanding the OpenFrame CLI codebase.
+Welcome to the OpenFrame CLI development documentation. This section provides comprehensive guides for developers, platform engineers, and contributors working with the OpenFrame CLI codebase.
 
 ## Quick Navigation
 
 ### 🚀 **Getting Started Development**
-- **[Environment Setup](setup/environment.md)** - IDE, tools, and development environment configuration
-- **[Local Development](setup/local-development.md)** - Clone, build, and run locally with hot reload
+- **[Environment Setup](setup/environment.md)** - IDE configuration, tools, and development environment
+- **[Local Development](setup/local-development.md)** - Clone, build, run, and debug the CLI locally
 
 ### 🏗️ **Architecture & Design**
-- **[Architecture Overview](architecture/overview.md)** - System design, components, and data flow
-- **[Code Organization](architecture/code-structure.md)** - Package structure and design patterns
+- **[Architecture Overview](architecture/README.md)** - High-level system design, components, and data flow
 
-### 🧪 **Testing & Quality**
-- **[Testing Overview](testing/overview.md)** - Test structure, running tests, and coverage
-- **[Integration Tests](testing/integration.md)** - End-to-end testing strategies
-- **[Mocking & Test Utilities](testing/mocking.md)** - Test doubles and helper functions
+### 🔒 **Security**
+- **[Security Guidelines](security/README.md)** - Authentication, authorization, and security best practices
+
+### 🧪 **Testing**
+- **[Testing Guide](testing/README.md)** - Test structure, running tests, and writing new tests
 
 ### 🤝 **Contributing**
-- **[Contributing Guidelines](contributing/guidelines.md)** - Code style, PR process, and best practices
-- **[Release Process](contributing/releases.md)** - Version management and release procedures
-- **[Debugging Guide](contributing/debugging.md)** - Troubleshooting and debugging techniques
+- **[Contributing Guidelines](contributing/guidelines.md)** - Code style, PR process, and review checklist
 
-## Development Overview
+## Development Workflow Overview
 
-OpenFrame CLI is built with modern Go practices and follows a clean architecture pattern:
+The OpenFrame CLI follows a modern Go development workflow with clear separation between CLI commands, business logic, and external integrations.
 
 ```mermaid
-graph TB
-    subgraph "Development Environment"
-        IDE[VS Code / GoLand]
-        Go[Go 1.21+]
-        Docker[Docker Desktop]
-        K3d[K3d for Testing]
-    end
+flowchart TD
+    A[Developer Workflow] --> B[Setup Environment]
+    B --> C[Clone & Build]
+    C --> D[Local Development]
+    D --> E[Testing]
+    E --> F[Contribution]
     
-    subgraph "CLI Architecture"
-        CMD[Command Layer]
-        SVC[Service Layer]
-        PROV[Provider Layer]
-        SHARED[Shared Infrastructure]
-    end
+    B --> G[IDE Setup]
+    B --> H[Tool Installation]
     
-    subgraph "External Dependencies"
-        K8s[Kubernetes APIs]
-        Helm[Helm Charts]
-        ArgoCD[ArgoCD APIs]
-        Git[Git Repositories]
-    end
+    C --> I[Go Build]
+    C --> J[Dependency Management]
     
-    IDE --> Go
-    Go --> CMD
-    CMD --> SVC
-    SVC --> PROV
-    PROV --> K8s
-    PROV --> Helm
-    PROV --> ArgoCD
-    PROV --> Git
+    D --> K[Code Changes]
+    D --> L[Live Testing]
+    D --> M[Debugging]
+    
+    E --> N[Unit Tests]
+    E --> O[Integration Tests]
+    E --> P[Coverage Analysis]
+    
+    F --> Q[Code Review]
+    F --> R[Documentation]
+    F --> S[Pull Request]
 ```
 
-## Core Technologies
+## Key Development Areas
 
-| Technology | Purpose | Version |
-|------------|---------|---------|
-| **Go** | Primary language | 1.21+ |
-| **Cobra** | CLI framework | v1.7+ |
-| **Kubernetes APIs** | Cluster interaction | v1.24+ |
-| **Helm SDK** | Chart management | v3.8+ |
-| **Docker** | Container operations | 20.10+ |
-| **K3d** | Local testing clusters | 5.4+ |
+### Command-Line Interface
+The CLI uses Cobra framework for command structure and user interaction:
+
+- **Commands** (`cmd/`): CLI command definitions and flag management
+- **Interactive Wizards** (`internal/*/ui/`): Terminal-based user interfaces
+- **Help System**: Comprehensive help text and usage examples
+
+### Core Services
+Business logic is organized into domain-specific services:
+
+- **Bootstrap Service**: Orchestrates cluster + chart setup
+- **Cluster Service**: K3D cluster lifecycle management  
+- **Chart Service**: Helm and ArgoCD integration
+- **Dev Service**: Development tools and workflows
+
+### External Integrations
+The CLI integrates with various external tools:
+
+- **Kubernetes**: kubectl, K3D cluster management
+- **GitOps**: Helm charts, ArgoCD applications
+- **Development**: Telepresence intercepts, scaffolding
+- **Prerequisites**: Tool validation and installation
+
+### Cross-Platform Support
+Special considerations for different platforms:
+
+- **Linux**: Native Go binary execution
+- **macOS**: Full compatibility with Intel and Apple Silicon
+- **Windows**: WSL2 integration and path handling
+
+## Development Tools & Stack
+
+| Category | Tools | Purpose |
+|----------|-------|---------|
+| **Language** | Go 1.19+ | CLI implementation |
+| **CLI Framework** | Cobra | Command structure and parsing |
+| **UI Components** | Custom terminal UI | Interactive wizards |
+| **Testing** | Go testing, testify | Unit and integration testing |
+| **Dependencies** | Go modules | Package management |
+| **External Tools** | K3D, Helm, kubectl, Telepresence | Kubernetes operations |
+
+## Documentation Structure
+
+Each development topic is covered in dedicated sections:
+
+### Setup Guides
+Step-by-step instructions for preparing your development environment:
+- IDE recommendations and configuration
+- Required development tools and versions  
+- Environment variable setup
+- Local development workflow
+
+### Architecture Documentation  
+Deep-dive into system design and implementation:
+- Component relationships and data flow
+- Design patterns and architectural decisions
+- Module boundaries and interfaces
+- Extension points and customization
+
+### Security Guidelines
+Security considerations for CLI development:
+- Authentication and authorization patterns
+- Secure handling of credentials and secrets
+- Input validation and sanitization
+- Security testing and code review practices
+
+### Testing Strategy
+Comprehensive testing approach:
+- Unit testing patterns and utilities
+- Integration testing with external tools
+- Mock strategies for external dependencies
+- Coverage requirements and reporting
+
+### Contributing Process
+Guidelines for external and internal contributors:
+- Code style and formatting standards
+- Git workflow and branching strategy
+- Pull request process and review criteria
+- Documentation requirements
 
 ## Development Principles
 
-### 🎯 **User Experience First**
-- Interactive wizard-style interfaces
-- Clear error messages and validation
-- Progress indicators for long operations
+The OpenFrame CLI development follows these key principles:
 
-### 🏗️ **Clean Architecture**
-- Separation of concerns with layered design
-- Dependency injection for testability
-- Provider pattern for external integrations
+### 🎯 **User-Centric Design**
+- Interactive wizards for complex operations
+- Clear error messages and help text
+- Progressive disclosure of advanced options
+- Consistent command patterns across features
 
-### 🧪 **Test-Driven Development**
-- Comprehensive unit and integration tests
-- Mock-based testing for external dependencies
-- Test utilities for common scenarios
+### 🔧 **Platform Compatibility**
+- Cross-platform support (Linux, macOS, Windows/WSL2)
+- Automatic tool installation and validation
+- Path handling for different operating systems
+- Graceful degradation when tools are unavailable
 
-### 📦 **Modular Design**
-- Pluggable providers for different platforms
-- Shared utilities for common operations
-- Configuration-driven behavior
+### 🚀 **Developer Experience**
+- Fast build and test cycles
+- Comprehensive debugging support
+- Live reloading for development
+- Clear separation between CLI and business logic
 
-## Project Structure
+### 📦 **Modular Architecture**
+- Clear domain boundaries between services
+- Pluggable providers for external tools
+- Reusable UI components and utilities
+- Testable interfaces and dependency injection
 
-```text
-openframe-cli/
-├── cmd/                    # Cobra command definitions
-│   ├── bootstrap/         # Bootstrap command
-│   ├── cluster/           # Cluster management commands
-│   ├── chart/             # Chart installation commands
-│   └── dev/               # Development tools commands
-├── internal/              # Private application code
-│   ├── bootstrap/         # Bootstrap service logic
-│   ├── cluster/           # Cluster management services
-│   ├── chart/             # Chart installation services
-│   ├── dev/               # Development tools services
-│   └── shared/            # Shared utilities and infrastructure
-├── tests/                 # Test suites and utilities
-│   ├── integration/       # Integration test scenarios
-│   ├── mocks/             # Generated mock objects
-│   └── testutil/          # Test helper functions
-├── docs/                  # Documentation (generated)
-├── scripts/               # Build and development scripts
-└── deployments/           # Deployment configurations
-```
+### 🔐 **Security First**
+- Secure credential handling
+- Input validation at all boundaries
+- Least privilege principle
+- Regular security reviews
 
-## Common Development Tasks
+## Getting Started
 
-### Running Tests
-```bash
-# Run all tests
-make test
+If you're new to OpenFrame CLI development:
 
-# Run tests with coverage
-make test-coverage
+1. **Start with [Environment Setup](setup/environment.md)** to configure your IDE and tools
+2. **Follow [Local Development](setup/local-development.md)** to clone and build the project  
+3. **Review [Architecture Overview](architecture/README.md)** to understand the system design
+4. **Read [Contributing Guidelines](contributing/guidelines.md)** before making changes
 
-# Run integration tests
-make test-integration
-```
+## Community & Support
 
-### Building the CLI
-```bash
-# Build for current platform
-make build
+- **Slack Community**: [OpenMSP Slack](https://join.slack.com/t/openmsp/shared_invite/zt-36bl7mx0h-3~U2nFH6nqHqoTPXMaHEHA)
+- **Repository**: [flamingo-stack/openframe-oss-tenant](https://github.com/flamingo-stack/openframe-oss-tenant)
 
-# Build for all platforms
-make build-all
+> **Note**: We use Slack for all community discussions and support. GitHub Issues and Discussions are not actively monitored.
 
-# Build and install locally
-make install
-```
+## Contributing
 
-### Code Quality
-```bash
-# Run linters
-make lint
+The OpenFrame CLI is an open-source project welcoming contributions from the community. Whether you're fixing bugs, adding features, improving documentation, or helping with testing, your contributions are valuable.
 
-# Format code
-make fmt
-
-# Generate mocks
-make generate
-```
-
-## Development Workflow
-
-### 1. **Feature Development**
-```mermaid
-graph LR
-    A[Create Branch] --> B[Write Tests]
-    B --> C[Implement Feature]
-    C --> D[Run Tests]
-    D --> E[Integration Test]
-    E --> F[Submit PR]
-```
-
-### 2. **Testing Strategy**
-- **Unit Tests** - Test individual functions and methods
-- **Integration Tests** - Test complete workflows with real dependencies
-- **End-to-End Tests** - Test CLI commands in realistic scenarios
-
-### 3. **Code Review Process**
-- Automated checks (tests, linting, security)
-- Manual review for design and best practices
-- Documentation updates for new features
-
-## Getting Help
-
-### Internal Resources
-- **[Architecture Decisions](architecture/decisions.md)** - Understanding design choices
-- **[API Reference](reference/api.md)** - Internal API documentation
-- **[Troubleshooting](troubleshooting/common-issues.md)** - Common development issues
-
-### External Resources
-- [Go Documentation](https://golang.org/doc/)
-- [Cobra CLI Framework](https://cobra.dev/)
-- [Kubernetes Client-Go](https://github.com/kubernetes/client-go)
-- [Helm SDK Documentation](https://helm.sh/docs/topics/advanced/#go-sdk)
-
-### Community
-- GitHub Issues for bug reports and feature requests
-- Discussions for general questions and ideas
-- Pull Requests for contributions
-
-## Contributing Quick Start
-
-Ready to contribute? Here's the fastest path:
-
-1. **[Set up your environment](setup/environment.md)** - Get your development tools ready
-2. **[Clone and build locally](setup/local-development.md)** - Get the code running
-3. **[Read the architecture guide](architecture/overview.md)** - Understand the system design
-4. **[Review contributing guidelines](contributing/guidelines.md)** - Follow our standards
-
-> **💡 New to the Codebase?** Start with the architecture overview to understand how components work together, then explore the specific area you want to contribute to.
+Before contributing, please review our contributing guidelines and join the Slack community to discuss your ideas with maintainers and other contributors.
 
 ---
 
-*This documentation is designed for developers of all experience levels. Whether you're fixing a bug, adding a feature, or just exploring the code, these guides will help you be productive quickly.*
+**Ready to start developing?** Choose the guide that matches your current needs and dive in. The OpenFrame CLI codebase is designed to be approachable for new contributors while providing the flexibility needed for complex Kubernetes operations.

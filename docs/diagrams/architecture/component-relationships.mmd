@@ -1,58 +1,49 @@
-graph TB
+graph LR
     subgraph "Command Layer"
-        BootstrapCmd[Bootstrap Command]
-        ClusterCmd[Cluster Commands]
-        ChartCmd[Chart Commands]
-        DevCmd[Dev Commands]
+        CC[Cluster Commands]
+        ChC[Chart Commands]  
+        DC[Dev Commands]
+        BC[Bootstrap Command]
     end
     
     subgraph "Service Layer"
-        BootstrapSvc[Bootstrap Service]
-        ClusterSvc[Cluster Service]
-        ChartSvc[Chart Service]
-        InterceptSvc[Intercept Service]
-        ScaffoldSvc[Scaffold Service]
+        CS[Cluster Service]
+        ChS[Chart Service]
+        DS[Dev Service]
+        BS[Bootstrap Service]
     end
     
     subgraph "Provider Layer"
-        K3DProvider[K3D Manager]
-        HelmProvider[Helm Manager]
-        ArgoCDProvider[ArgoCD Manager]
-        GitProvider[Git Repository]
-        TelepresenceProvider[Telepresence Provider]
-        KubectlProvider[Kubectl Provider]
+        K3DP[K3D Provider]
+        HP[Helm Provider]
+        AP[ArgoCD Provider]
+        TP[Telepresence Provider]
+        KP[Kubectl Provider]
     end
     
-    subgraph "Shared Infrastructure"
-        UI[UI Components]
-        Executor[Command Executor]
-        ErrorHandler[Error Handling]
-        Config[Configuration]
+    subgraph "External Tools"
+        K3D[K3D Binary]
+        Helm[Helm Binary]
+        ArgoCD[ArgoCD APIs]
+        Telepresence[Telepresence Binary]
+        Kubectl[Kubectl Binary]
     end
     
-    BootstrapCmd --> BootstrapSvc
-    ClusterCmd --> ClusterSvc
-    ChartCmd --> ChartSvc
-    DevCmd --> InterceptSvc
-    DevCmd --> ScaffoldSvc
+    CC --> CS
+    ChC --> ChS
+    DC --> DS
+    BC --> BS
+    BC --> CS
+    BC --> ChS
     
-    BootstrapSvc --> ClusterSvc
-    BootstrapSvc --> ChartSvc
+    CS --> K3DP
+    ChS --> HP
+    ChS --> AP
+    DS --> TP
+    DS --> KP
     
-    ClusterSvc --> K3DProvider
-    ChartSvc --> HelmProvider
-    ChartSvc --> ArgoCDProvider
-    ChartSvc --> GitProvider
-    InterceptSvc --> TelepresenceProvider
-    InterceptSvc --> KubectlProvider
-    ScaffoldSvc --> KubectlProvider
-    
-    ClusterSvc --> UI
-    ChartSvc --> UI
-    InterceptSvc --> UI
-    ScaffoldSvc --> UI
-    
-    K3DProvider --> Executor
-    HelmProvider --> Executor
-    TelepresenceProvider --> Executor
-    KubectlProvider --> Executor
+    K3DP --> K3D
+    HP --> Helm
+    AP --> ArgoCD
+    TP --> Telepresence
+    KP --> Kubectl

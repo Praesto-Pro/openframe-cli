@@ -1,6 +1,6 @@
 # Local Development Guide
 
-This guide covers cloning the OpenFrame CLI repository, building the project locally, setting up hot reload for development, and configuring debugging tools.
+This guide walks you through cloning, building, and running OpenFrame CLI locally for development. You'll learn the development workflow, debugging techniques, and testing strategies.
 
 ## Repository Setup
 
@@ -8,126 +8,208 @@ This guide covers cloning the OpenFrame CLI repository, building the project loc
 
 ```bash
 # Clone the main repository
-git clone https://github.com/flamingo-stack/openframe-cli.git
-cd openframe-cli
+git clone https://github.com/flamingo-stack/openframe-oss-tenant.git
+cd openframe-oss-tenant
 
-# Set up upstream remote for contributors
-git remote add upstream https://github.com/flamingo-stack/openframe-cli.git
-git fetch upstream
+# Verify repository structure
+ls -la
 ```
 
-### Fork Setup (for Contributors)
-
-```bash
-# Fork the repository on GitHub first, then:
-git clone https://github.com/YOUR_USERNAME/openframe-cli.git
-cd openframe-cli
-
-# Add upstream remote
-git remote add upstream https://github.com/flamingo-stack/openframe-cli.git
-git fetch upstream
-
-# Create a development branch
-git checkout -b feature/my-new-feature
-```
-
-## Project Structure Overview
-
-Understanding the codebase organization:
-
+**Expected structure:**
 ```text
-openframe-cli/
-├── cmd/                    # CLI command definitions
-│   ├── bootstrap/         # Bootstrap command implementation
-│   ├── cluster/           # Cluster management commands
-│   ├── chart/             # Chart installation commands
-│   ├── dev/               # Development tools commands
-│   └── root.go            # Root command and CLI setup
-├── internal/              # Private application logic
-│   ├── bootstrap/         # Bootstrap service logic
-│   ├── cluster/           # Cluster management services
-│   ├── chart/             # Chart installation services
-│   ├── dev/               # Development tools services
-│   └── shared/            # Shared utilities and infrastructure
-├── tests/                 # Test suites and utilities
-├── scripts/               # Build and development scripts
-├── deployments/           # Deployment configurations
-├── Makefile               # Build automation
-└── go.mod                 # Go module definition
+openframe-oss-tenant/
+├── cmd/              # CLI commands and entry points
+├── internal/         # Internal packages and business logic
+├── tests/            # Test files and utilities
+├── go.mod           # Go module definition
+├── go.sum           # Go module checksums
+├── main.go          # Application entry point
+└── README.md        # Project documentation
 ```
 
-## Building the Project
-
-### Initial Setup
+### Initialize Development Environment
 
 ```bash
-# Install dependencies
+# Verify Go module
+go mod tidy
+
+# Download dependencies
 go mod download
 
-# Generate code (mocks, etc.)
-make generate
-
-# Build the CLI
-make build
+# Verify dependencies
+go mod verify
 ```
 
-The binary will be created at `./bin/openframe`.
-
-### Build Targets
-
-| Command | Purpose |
-|---------|---------|
-| `make build` | Build for current platform |
-| `make build-all` | Build for all supported platforms |
-| `make build-dev` | Build with development flags |
-| `make clean` | Clean build artifacts |
-| `make install` | Build and install to `$GOPATH/bin` |
-
-### Verify Build
+### Set Up Git Configuration
 
 ```bash
-# Test the built binary
-./bin/openframe --version
-./bin/openframe --help
+# Configure Git for this repository
+git config user.name "Your Name"
+git config user.email "your.email@example.com"
 
-# Run a simple command
-./bin/openframe cluster list
+# Set up upstream remote (if you forked)
+git remote add upstream https://github.com/flamingo-stack/openframe-oss-tenant.git
+git fetch upstream
+```
+
+## Building the CLI
+
+### Development Build
+
+```bash
+# Basic build
+go build -o openframe .
+
+# Build with version information
+go build -ldflags "-X cmd.version=dev -X cmd.commit=$(git rev-parse HEAD) -X cmd.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o openframe .
+
+# Verify build
+./openframe --version
+```
+
+### Development Build Script
+
+Create a `build-dev.sh` script for convenient development builds:
+
+```bash
+#!/bin/bash
+# build-dev.sh
+
+set -e
+
+echo "🔨 Building OpenFrame CLI for development..."
+
+# Get version info
+VERSION=${VERSION:-"dev"}
+COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+# Build with version info
+go build -ldflags "\
+  -X cmd.version=$VERSION \
+  -X cmd.commit=$COMMIT \
+  -X cmd.date=$DATE" \
+  -o openframe .
+
+echo "✅ Build complete: ./openframe"
+echo "📋 Version: $VERSION ($COMMIT)"
+
+# Test the build
+./openframe --version
+```
+
+Make it executable and use it:
+
+```bash
+chmod +x build-dev.sh
+./build-dev.sh
+```
+
+### Cross-Platform Builds
+
+Build for different platforms during development:
+
+```bash
+# Linux AMD64
+GOOS=linux GOARCH=amd64 go build -o openframe-linux-amd64 .
+
+# macOS AMD64  
+GOOS=darwin GOARCH=amd64 go build -o openframe-darwin-amd64 .
+
+# macOS ARM64 (Apple Silicon)
+GOOS=darwin GOARCH=arm64 go build -o openframe-darwin-arm64 .
+
+# Windows AMD64
+GOOS=windows GOARCH=amd64 go build -o openframe-windows-amd64.exe .
+```
+
+## Running Locally
+
+### Basic Usage
+
+```bash
+# Show help
+./openframe --help
+
+# Show version
+./openframe --version
+
+# Run with verbose output
+./openframe --verbose cluster status
+```
+
+### Development Mode
+
+Enable development mode for enhanced debugging:
+
+```bash
+# Set development environment variables
+export OPENFRAME_DEV=1
+export OPENFRAME_LOG_LEVEL=debug
+
+# Run with development settings
+./openframe bootstrap --dry-run
+```
+
+### Testing Commands Safely
+
+Use dry-run and local modes for safe testing:
+
+```bash
+# Test bootstrap without creating resources
+./openframe bootstrap --dry-run
+
+# Test cluster creation with custom name
+./openframe cluster create test-cluster --dry-run
+
+# Test chart installation in local mode
+./openframe chart install --mode=local --dry-run
 ```
 
 ## Development Workflow
 
-### Hot Reload Setup
+### File Watching and Auto-Rebuild
 
-For rapid development, use Go's built-in tools for automatic rebuilding:
+#### Using `entr` (recommended)
 
-#### Option 1: Using `go run`
+Install `entr` for file watching:
+
 ```bash
-# Run directly from source
-go run main.go cluster create --name dev-test
+# Linux (Ubuntu/Debian)
+sudo apt install entr
 
-# With environment variables
-OPENFRAME_LOG_LEVEL=debug go run main.go bootstrap --verbose
+# macOS
+brew install entr
+
+# Usage: Auto-rebuild on file changes
+find . -name "*.go" | entr -r sh -c 'go build -o openframe . && echo "✅ Rebuild complete"'
 ```
 
-#### Option 2: Using Air (Recommended)
-Air provides automatic rebuilding when files change:
+#### Using `air` (Go-specific)
+
+Install and configure `air` for Go development:
 
 ```bash
-# Install Air
+# Install air
 go install github.com/cosmtrek/air@latest
 
-# Create .air.toml configuration
-cat > .air.toml << 'EOF'
+# Initialize air config
+air init
+```
+
+Edit `.air.toml`:
+
+```toml
 root = "."
 testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-  args_bin = ["cluster", "list"]
-  bin = "tmp/openframe"
-  cmd = "go build -o tmp/openframe ."
+  args_bin = []
+  bin = "./tmp/main"
+  cmd = "go build -o ./tmp/main ."
   delay = 1000
-  exclude_dir = ["assets", "tmp", "vendor", "testdata", "docs"]
+  exclude_dir = ["assets", "tmp", "vendor", "testdata"]
   exclude_file = []
   exclude_regex = ["_test.go"]
   exclude_unchanged = false
@@ -152,359 +234,488 @@ tmp_dir = "tmp"
 
 [misc]
   clean_on_exit = false
-EOF
+```
 
-# Start hot reload
+Run with air:
+
+```bash
 air
 ```
 
-#### Option 3: Using Makefile Watch Target
-```bash
-# Start file watcher with make
-make watch
+### Live Development Testing
 
-# This runs:
-# fswatch -o . -e ".*\.git.*" | xargs -n1 -I{} make build
+Create a development testing script:
+
+```bash
+#!/bin/bash
+# dev-test.sh
+
+echo "🧪 Development Testing Script"
+echo "============================="
+
+# Build latest version
+./build-dev.sh
+
+echo ""
+echo "🔍 Running basic tests..."
+
+# Test version
+echo "Version check:"
+./openframe --version
+echo ""
+
+# Test help
+echo "Help check:"
+./openframe --help | head -10
+echo ""
+
+# Test prerequisite checking
+echo "Prerequisites check:"
+./openframe bootstrap --dry-run --verbose | head -20
+echo ""
+
+echo "✅ Development tests complete!"
 ```
 
-### Development Commands
+## Debugging Techniques
 
-#### Running Tests During Development
+### Using Delve Debugger
+
+#### Command Line Debugging
+
+```bash
+# Install Delve if not already installed
+go install github.com/go-delve/delve/cmd/dlv@latest
+
+# Debug the main application
+dlv debug . -- bootstrap --dry-run
+
+# Debug with arguments
+dlv debug . -- cluster create test --verbose
+
+# Debug tests
+dlv test ./internal/cluster
+```
+
+#### VS Code Debugging
+
+Use the debug configuration from the environment setup:
+
+1. Set breakpoints in VS Code
+2. Press `F5` or use the debug panel
+3. Select "Debug OpenFrame CLI" configuration
+4. The debugger will start with your arguments
+
+#### Debugging Specific Commands
+
+Create focused debug configurations in `.vscode/launch.json`:
+
+```json
+{
+  "name": "Debug Cluster Create",
+  "type": "go",
+  "request": "launch",
+  "mode": "debug",
+  "program": "${workspaceFolder}/main.go",
+  "args": ["cluster", "create", "debug-cluster", "--verbose"],
+  "cwd": "${workspaceFolder}",
+  "env": {
+    "OPENFRAME_DEV": "1",
+    "OPENFRAME_LOG_LEVEL": "debug"
+  },
+  "console": "integratedTerminal"
+}
+```
+
+### Logging and Tracing
+
+#### Enhanced Logging
+
+Add debug logging to your code:
+
+```go
+import (
+    "log/slog"
+    "os"
+)
+
+// Enable structured logging
+logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+    Level: slog.LevelDebug,
+}))
+
+// Use throughout the application
+logger.Debug("Processing cluster creation", "name", clusterName, "config", config)
+logger.Info("Cluster created successfully", "name", clusterName)
+logger.Error("Failed to create cluster", "error", err)
+```
+
+#### Trace External Commands
+
+Log all external command executions:
+
+```go
+// In internal/shared/executor/executor.go
+func (e *Executor) Execute(cmd *exec.Cmd) error {
+    if os.Getenv("OPENFRAME_DEV") == "1" {
+        fmt.Printf("🔧 Executing: %s %v\n", cmd.Path, cmd.Args)
+    }
+    
+    output, err := cmd.CombinedOutput()
+    
+    if os.Getenv("OPENFRAME_DEV") == "1" {
+        fmt.Printf("📤 Output: %s\n", string(output))
+        if err != nil {
+            fmt.Printf("❌ Error: %v\n", err)
+        }
+    }
+    
+    return err
+}
+```
+
+## Testing During Development
+
+### Unit Tests
+
+Run tests with various options:
+
 ```bash
 # Run all tests
-make test
-
-# Run tests with coverage
-make test-coverage
-
-# Run specific test packages
-go test ./internal/cluster/...
+go test ./...
 
 # Run tests with verbose output
 go test -v ./...
 
-# Run tests continuously
-make test-watch
+# Run tests with race detection
+go test -race ./...
+
+# Run tests with coverage
+go test -cover ./...
+
+# Run specific package tests
+go test ./internal/cluster/...
+
+# Run specific test function
+go test -run TestClusterCreate ./internal/cluster
 ```
 
-#### Code Quality Checks
+### Integration Tests
+
+Run integration tests against real resources:
+
 ```bash
-# Run linters
-make lint
+# Run integration tests (requires Docker)
+go test -tags=integration ./tests/integration/...
 
-# Format code
-make fmt
+# Run with verbose output
+go test -v -tags=integration ./tests/integration/...
 
-# Check for security issues
-make security
-
-# Generate missing code
-make generate
+# Run specific integration test
+go test -tags=integration -run TestBootstrapIntegration ./tests/integration/
 ```
 
-### Debugging Configuration
+### Test Coverage Analysis
 
-#### VS Code Debugging
+Generate and view test coverage:
 
-Create `.vscode/launch.json`:
+```bash
+# Generate coverage profile
+go test -coverprofile=coverage.out ./...
+
+# View coverage in terminal
+go tool cover -func=coverage.out
+
+# Generate HTML coverage report
+go tool cover -html=coverage.out -o coverage.html
+
+# Open in browser
+open coverage.html  # macOS
+xdg-open coverage.html  # Linux
+start coverage.html  # Windows
+```
+
+### Benchmark Tests
+
+Run performance benchmarks:
+
+```bash
+# Run benchmarks
+go test -bench=. ./...
+
+# Run benchmarks with memory allocation stats
+go test -bench=. -benchmem ./...
+
+# Run specific benchmark
+go test -bench=BenchmarkClusterCreate ./internal/cluster
+```
+
+## Development Tools Integration
+
+### Makefile for Development
+
+Create a `Makefile` for common development tasks:
+
+```makefile
+.PHONY: build test clean install lint format help
+
+# Variables
+BINARY_NAME=openframe
+VERSION?=dev
+COMMIT?=$(shell git rev-parse --short HEAD)
+DATE?=$(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+LDFLAGS=-ldflags "-X cmd.version=$(VERSION) -X cmd.commit=$(COMMIT) -X cmd.date=$(DATE)"
+
+# Default target
+help: ## Show this help message
+	@echo "OpenFrame CLI Development"
+	@echo "========================="
+	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z_-]+:.*##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+
+build: ## Build the CLI binary
+	@echo "🔨 Building $(BINARY_NAME)..."
+	@go build $(LDFLAGS) -o $(BINARY_NAME) .
+	@echo "✅ Build complete: ./$(BINARY_NAME)"
+
+test: ## Run all tests
+	@echo "🧪 Running tests..."
+	@go test -v -race ./...
+
+test-integration: ## Run integration tests
+	@echo "🧪 Running integration tests..."
+	@go test -v -tags=integration ./tests/integration/...
+
+coverage: ## Generate test coverage report
+	@echo "📊 Generating coverage report..."
+	@go test -coverprofile=coverage.out ./...
+	@go tool cover -html=coverage.out -o coverage.html
+	@echo "✅ Coverage report: coverage.html"
+
+lint: ## Run linter
+	@echo "🔍 Running linter..."
+	@golangci-lint run
+
+format: ## Format code
+	@echo "🎨 Formatting code..."
+	@gofmt -s -w .
+	@goimports -w .
+
+clean: ## Clean build artifacts
+	@echo "🧹 Cleaning..."
+	@rm -f $(BINARY_NAME)
+	@rm -f coverage.out coverage.html
+	@rm -rf tmp/
+
+install: build ## Install the CLI binary
+	@echo "📦 Installing $(BINARY_NAME)..."
+	@sudo cp $(BINARY_NAME) /usr/local/bin/
+	@echo "✅ Installed to /usr/local/bin/$(BINARY_NAME)"
+
+dev: ## Build and run in development mode
+	@$(MAKE) build
+	@OPENFRAME_DEV=1 OPENFRAME_LOG_LEVEL=debug ./$(BINARY_NAME) $(ARGS)
+
+release: ## Build release binaries for all platforms
+	@echo "🚀 Building release binaries..."
+	@GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)-linux-amd64 .
+	@GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)-darwin-amd64 .
+	@GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)-darwin-arm64 .
+	@GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)-windows-amd64.exe .
+	@echo "✅ Release binaries created in dist/"
+```
+
+Usage examples:
+
+```bash
+# Build
+make build
+
+# Test
+make test
+
+# Development mode with arguments
+make dev ARGS="cluster create test-cluster --dry-run"
+
+# Full development cycle
+make clean build test lint
+```
+
+### VS Code Tasks
+
+Create `.vscode/tasks.json` for integrated development tasks:
+
 ```json
 {
-  "version": "0.2.0",
-  "configurations": [
+  "version": "2.0.0",
+  "tasks": [
     {
-      "name": "Debug Bootstrap Command",
-      "type": "go",
-      "request": "launch",
-      "mode": "debug",
-      "program": "${workspaceFolder}/main.go",
-      "args": ["bootstrap", "--mode", "oss-tenant", "--verbose"],
-      "env": {
-        "OPENFRAME_LOG_LEVEL": "debug",
-        "OPENFRAME_DEV_MODE": "true"
+      "label": "build",
+      "type": "shell",
+      "command": "go",
+      "args": ["build", "-o", "openframe", "."],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
       },
-      "console": "integratedTerminal",
-      "cwd": "${workspaceFolder}"
+      "problemMatcher": ["$go"]
     },
     {
-      "name": "Debug Cluster Create",
-      "type": "go",
-      "request": "launch",
-      "mode": "debug",
-      "program": "${workspaceFolder}/main.go",
-      "args": ["cluster", "create", "--name", "debug-cluster"],
-      "env": {
-        "OPENFRAME_LOG_LEVEL": "debug"
+      "label": "test",
+      "type": "shell",
+      "command": "go",
+      "args": ["test", "-v", "./..."],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": ["$go"]
+    },
+    {
+      "label": "lint",
+      "type": "shell",
+      "command": "golangci-lint",
+      "args": ["run"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
       }
-    },
-    {
-      "name": "Debug Current Test",
-      "type": "go",
-      "request": "launch",
-      "mode": "test",
-      "program": "${workspaceFolder}",
-      "args": ["-test.run", "TestClusterCreate"],
-      "showLog": true
     }
   ]
 }
 ```
 
-#### Command Line Debugging
+Use tasks with `Ctrl+Shift+P` → "Tasks: Run Task".
+
+## Hot Reload Development
+
+### Air Configuration for OpenFrame CLI
+
+Advanced `.air.toml` configuration for CLI development:
+
+```toml
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
+
+[build]
+  args_bin = ["--help"]
+  bin = "./tmp/openframe"
+  cmd = "go build -o ./tmp/openframe ."
+  delay = 1000
+  exclude_dir = ["assets", "tmp", "vendor", "testdata", "dist", ".git"]
+  exclude_file = []
+  exclude_regex = ["_test.go"]
+  exclude_unchanged = false
+  follow_symlink = false
+  full_bin = "OPENFRAME_DEV=1 OPENFRAME_LOG_LEVEL=debug ./tmp/openframe"
+  include_dir = []
+  include_ext = ["go"]
+  kill_delay = "0s"
+  log = "tmp/build-errors.log"
+  send_interrupt = false
+  stop_on_root = false
+
+[color]
+  app = ""
+  build = "yellow"
+  main = "magenta"
+  runner = "green"
+  watcher = "cyan"
+
+[log]
+  time = false
+
+[misc]
+  clean_on_exit = true
+
+[screen]
+  clear_on_rebuild = true
+  keep_scroll = true
+```
+
+## Troubleshooting Development Issues
+
+### Go Module Issues
+
 ```bash
-# Build with debug symbols
-go build -gcflags="all=-N -l" -o bin/openframe-debug main.go
+# Clear module cache
+go clean -modcache
 
-# Run with delve debugger
-dlv exec ./bin/openframe-debug -- cluster create --name debug
+# Re-download dependencies
+go mod download
 
-# Debug a specific test
-dlv test ./internal/cluster -- -test.run TestClusterService
+# Tidy up dependencies
+go mod tidy
+
+# Verify module integrity
+go mod verify
 ```
 
-#### GoLand/IntelliJ Debugging
-1. Open Run/Debug Configurations
-2. Add new "Go Application" configuration
-3. Set program arguments and environment variables
-4. Set breakpoints and run
+### Build Issues
 
-## Local Testing Setup
-
-### Test Cluster Management
-
-Create test clusters for development:
-
-```bash
-# Create dedicated test cluster
-k3d cluster create openframe-dev \
-  --api-port 6445 \
-  --port "8080:80@loadbalancer" \
-  --agents 1
-
-# Use test cluster
-kubectl config use-context k3d-openframe-dev
-
-# Clean up when done
-k3d cluster delete openframe-dev
-```
-
-### Mock Development
-
-Enable mocks for faster development:
-
-```bash
-# Set environment for mock providers
-export OPENFRAME_MOCK_PROVIDERS=true
-export OPENFRAME_DEV_MODE=true
-
-# Run with mocks
-go run main.go cluster create --name mock-cluster
-```
-
-### Integration Test Setup
-
-```bash
-# Create integration test environment
-make test-env-setup
-
-# Run integration tests
-make test-integration
-
-# Cleanup test environment
-make test-env-cleanup
-```
-
-## Development Scripts
-
-### Useful Scripts
-
-Create these helper scripts in your local environment:
-
-#### `scripts/dev-cluster.sh`
-```bash
-#!/bin/bash
-set -e
-
-CLUSTER_NAME=${1:-openframe-dev}
-
-echo "🚀 Creating development cluster: $CLUSTER_NAME"
-
-k3d cluster create $CLUSTER_NAME \
-  --api-port 6445 \
-  --port "8080:80@loadbalancer" \
-  --port "8443:443@loadbalancer" \
-  --agents 1 \
-  --wait
-
-echo "✅ Cluster $CLUSTER_NAME ready!"
-echo "💡 Use: kubectl config use-context k3d-$CLUSTER_NAME"
-```
-
-#### `scripts/quick-test.sh`
-```bash
-#!/bin/bash
-# Quick test and build script
-
-set -e
-
-echo "🧪 Running tests..."
-make test
-
-echo "🔨 Building binary..."
-make build
-
-echo "✅ Testing built binary..."
-./bin/openframe --version
-
-echo "🎉 Ready for development!"
-```
-
-#### `scripts/reset-dev.sh`
-```bash
-#!/bin/bash
-# Reset development environment
-
-set -e
-
-echo "🗑️  Cleaning up..."
-k3d cluster delete openframe-dev 2>/dev/null || true
-make clean
-
-echo "🔄 Resetting..."
-make build
-./scripts/dev-cluster.sh
-
-echo "🎯 Development environment reset!"
-```
-
-## Common Development Tasks
-
-### Adding a New Command
-
-1. **Create command file** in `cmd/` directory:
-```bash
-mkdir -p cmd/mynewcommand
-touch cmd/mynewcommand/mynewcommand.go
-```
-
-2. **Implement command structure**:
-```go
-package mynewcommand
-
-import (
-    "github.com/spf13/cobra"
-)
-
-func GetMyNewCmd() *cobra.Command {
-    cmd := &cobra.Command{
-        Use:   "mynew",
-        Short: "Description of my new command",
-        RunE: func(cmd *cobra.Command, args []string) error {
-            // Command logic here
-            return nil
-        },
-    }
-    
-    return cmd
-}
-```
-
-3. **Add to root command** in `cmd/root.go`:
-```go
-rootCmd.AddCommand(getMyNewCmd())
-```
-
-4. **Create service layer** in `internal/mynewcommand/`
-5. **Add tests** in `tests/`
-
-### Adding a New Provider
-
-1. **Define interface** in `internal/shared/interfaces/`
-2. **Implement provider** in appropriate service directory
-3. **Add mock** using `mockgen`
-4. **Write tests** with mocked dependencies
-
-### Debugging Common Issues
-
-#### Build Issues
 ```bash
 # Clean and rebuild
-make clean
-go mod tidy
-make build
+rm -f openframe
+go clean -cache
+go build -v .
+
+# Check for import cycles
+go list -json . | jq '.Deps'
+
+# Verbose build output
+go build -x .
 ```
 
-#### Test Failures
+### Debug Configuration Issues
+
 ```bash
-# Run specific failing test with verbose output
-go test -v -run TestSpecificFunction ./internal/package
+# Check environment variables
+env | grep OPENFRAME
 
-# Check for race conditions
-go test -race ./...
+# Test with minimal config
+unset OPENFRAME_DEV
+unset OPENFRAME_LOG_LEVEL
+./openframe --version
 ```
 
-#### Import Issues
+### External Tool Integration Issues
+
 ```bash
-# Update dependencies
-go get -u ./...
-go mod tidy
+# Test external tool availability
+which k3d kubectl helm docker
+
+# Test Docker connectivity
+docker ps
+docker run hello-world
+
+# Test Kubernetes connectivity
+kubectl version --client
+kubectl cluster-info
 ```
 
-## Performance Profiling
+## Next Steps
 
-### CPU Profiling
-```bash
-# Build with profiling
-go build -o bin/openframe-profile main.go
+After setting up local development:
 
-# Run with CPU profiling
-./bin/openframe-profile cluster create --cpuprofile=cpu.prof
+1. **[Architecture Overview](../architecture/README.md)** - Understand the codebase structure
+2. **[Testing Guide](../testing/README.md)** - Learn testing strategies and best practices  
+3. **[Contributing Guidelines](../contributing/guidelines.md)** - Understand the contribution workflow
 
-# Analyze profile
-go tool pprof cpu.prof
-```
+## Development Best Practices
 
-### Memory Profiling
-```bash
-# Run with memory profiling
-./bin/openframe-profile bootstrap --memprofile=mem.prof
+1. **Incremental Development**: Make small, testable changes
+2. **Test-Driven Development**: Write tests before implementing features
+3. **Debug Early**: Use debugger instead of print statements
+4. **Version Everything**: Use meaningful git commit messages
+5. **Document Decisions**: Comment complex logic and architectural choices
 
-# Analyze memory usage
-go tool pprof mem.prof
-```
-
-## Git Workflow for Development
-
-### Feature Development
-```bash
-# Create feature branch
-git checkout -b feature/my-awesome-feature
-
-# Make changes and commit regularly
-git add .
-git commit -m "feat: add awesome new feature"
-
-# Push and create PR
-git push origin feature/my-awesome-feature
-```
-
-### Keeping Branch Updated
-```bash
-# Fetch latest changes
-git fetch upstream
-
-# Rebase on main
-git rebase upstream/main
-
-# Force push if needed (after rebase)
-git push --force-with-lease origin feature/my-awesome-feature
-```
-
-## What's Next?
-
-Now that you have local development running:
-
-1. **[Understand the architecture](../architecture/overview.md)** - Learn how components interact
-2. **[Explore testing strategies](../testing/overview.md)** - Write effective tests  
-3. **[Follow contributing guidelines](../contributing/guidelines.md)** - Submit quality contributions
-
-> **💡 Pro Tip**: Use the `make help` command to see all available build targets and development commands.
+The local development setup provides a solid foundation for contributing to OpenFrame CLI. The tools and workflows described here will help you develop efficiently and maintain code quality throughout the development process.

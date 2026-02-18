@@ -1,250 +1,339 @@
 # Development Environment Setup
 
-This guide will help you set up a complete development environment for contributing to OpenFrame CLI. Follow these steps to get your tools configured and ready for development.
+This guide will help you set up a complete development environment for OpenFrame CLI. Follow these steps to ensure you have all the necessary tools and configurations for productive development.
+
+## IDE Recommendations
+
+### Primary: Visual Studio Code
+
+**Why VS Code?**
+- Excellent Go extension with debugging support
+- Integrated terminal for CLI testing
+- Rich extension ecosystem
+- Cross-platform consistency
+
+**Installation:**
+1. Download from [code.visualstudio.com](https://code.visualstudio.com/)
+2. Install for your platform (Linux, macOS, Windows)
+
+**Essential Extensions:**
+
+| Extension | Purpose | Installation |
+|-----------|---------|--------------|
+| **Go** (Google) | Go language support, debugging, testing | `ext install golang.Go` |
+| **Kubernetes** (Microsoft) | YAML support, cluster integration | `ext install ms-kubernetes-tools.vscode-kubernetes-tools` |
+| **YAML** (Red Hat) | YAML syntax and validation | `ext install redhat.vscode-yaml` |
+| **Git Lens** (GitKraken) | Enhanced Git integration | `ext install eamodio.gitlens` |
+| **Docker** (Microsoft) | Container support | `ext install ms-azuretools.vscode-docker` |
+
+**Install all extensions:**
+```bash
+code --install-extension golang.Go
+code --install-extension ms-kubernetes-tools.vscode-kubernetes-tools  
+code --install-extension redhat.vscode-yaml
+code --install-extension eamodio.gitlens
+code --install-extension ms-azuretools.vscode-docker
+```
+
+### Alternative: GoLand
+
+**Why GoLand?**
+- Professional Go IDE with advanced refactoring
+- Excellent debugging and profiling tools
+- Built-in database and REST client tools
+
+**Installation:**
+1. Download from [jetbrains.com/go](https://www.jetbrains.com/go/)
+2. 30-day free trial, then requires license
+
+### Alternative: Neovim/Vim
+
+**Why Neovim?**
+- Lightweight and fast
+- Highly customizable
+- Excellent terminal integration
+
+**Setup with Go support:**
+```bash
+# Install Neovim
+# Ubuntu/Debian
+sudo apt install neovim
+
+# macOS
+brew install neovim
+
+# Install vim-plug
+curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+
+# Add to ~/.config/nvim/init.vim
+call plug#begin()
+Plug 'fatih/vim-go', { 'do': ':GoInstallBinaries' }
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+call plug#end()
+```
 
 ## Required Development Tools
 
-### Core Development Stack
+### Go Development Environment
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| **Go** | 1.21+ | Primary development language |
-| **Git** | 2.30+ | Version control |
-| **Make** | 4.0+ | Build automation |
-| **Docker** | 20.10+ | Container runtime for testing |
-| **kubectl** | 1.24+ | Kubernetes CLI |
-| **K3d** | 5.4+ | Local Kubernetes clusters |
+**Go 1.19+ Installation:**
 
-### IDE Recommendations
-
-#### Visual Studio Code (Recommended)
-VS Code provides excellent Go support and integrates well with our development workflow.
-
-**Required Extensions:**
-```json
-{
-  "recommendations": [
-    "golang.go",
-    "ms-vscode.vscode-go",
-    "ms-kubernetes-tools.vscode-kubernetes-tools",
-    "redhat.vscode-yaml",
-    "davidanson.vscode-markdownlint"
-  ]
-}
-```
-
-**VS Code Settings for OpenFrame:**
-```json
-{
-  "go.useLanguageServer": true,
-  "go.lintTool": "golangci-lint",
-  "go.lintFlags": ["--fast"],
-  "go.testFlags": ["-v", "-race"],
-  "go.buildTags": "integration",
-  "yaml.schemas": {
-    "https://json.schemastore.org/kustomization": "kustomization.yaml"
-  }
-}
-```
-
-#### GoLand / IntelliJ IDEA
-Professional IDE with advanced refactoring and debugging features.
-
-**Recommended Plugins:**
-- Kubernetes
-- Docker
-- Helm
-- Makefile Language
-
-#### Vim/Neovim
-For developers preferring terminal-based editors.
-
-**Essential Plugins:**
-- `vim-go` or `govim`
-- `ale` for linting
-- `fzf.vim` for file navigation
-
-## Go Development Setup
-
-### Install Go
-
-#### Using Official Installer
+**Linux (Ubuntu/Debian):**
 ```bash
-# Download and install Go 1.21+
-wget https://golang.org/dl/go1.21.5.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.21.5.linux-amd64.tar.gz
+# Remove old Go versions
+sudo rm -rf /usr/local/go
+
+# Download and install latest Go
+wget https://go.dev/dl/go1.21.5.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.21.5.linux-amd64.tar.gz
+
+# Add to ~/.bashrc or ~/.zshrc
+echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+echo 'export GOPATH=$HOME/go' >> ~/.bashrc
+echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.bashrc
+source ~/.bashrc
 ```
 
-#### Using Package Managers
-
-**macOS (Homebrew):**
+**macOS:**
 ```bash
+# Using Homebrew (recommended)
 brew install go
+
+# Or download from https://go.dev/dl/
+# Add to ~/.zshrc
+echo 'export GOPATH=$HOME/go' >> ~/.zshrc
+echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.zshrc
+source ~/.zshrc
 ```
 
-**Ubuntu/Debian:**
+**Windows (WSL2):**
 ```bash
-sudo apt update
-sudo apt install golang-go
+# Install inside WSL2
+wget https://go.dev/dl/go1.21.5.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.21.5.linux-amd64.tar.gz
+
+# Add to ~/.bashrc
+echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+echo 'export GOPATH=$HOME/go' >> ~/.bashrc
+source ~/.bashrc
 ```
 
-**Windows (Chocolatey):**
+**Verify Installation:**
 ```bash
-choco install golang
-```
+go version
+# Expected: go version go1.21.5 linux/amd64
 
-### Configure Go Environment
-
-Add these to your shell profile (`.bashrc`, `.zshrc`, etc.):
-
-```bash
-export GOPATH=$HOME/go
-export GOROOT=/usr/local/go
-export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
-export GO111MODULE=on
-export CGO_ENABLED=1
-```
-
-Verify your Go installation:
-```bash
-go version  # Should show Go 1.21+
 go env GOPATH
-go env GOROOT
+# Expected: /home/username/go
 ```
 
-## Development Tools Installation
+### Essential Go Tools
 
-### golangci-lint (Code Linting)
-```bash
-# Install latest version
-curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin latest
-```
+Install development tools that enhance the Go experience:
 
-### go-mock (Test Mocking)
 ```bash
-go install github.com/golang/mock/mockgen@latest
-```
+# Go language server
+go install golang.org/x/tools/gopls@latest
 
-### goimports (Code Formatting)
-```bash
+# Code formatting and imports
 go install golang.org/x/tools/cmd/goimports@latest
+
+# Linting
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+# Debugging
+go install github.com/go-delve/delve/cmd/dlv@latest
+
+# Testing utilities
+go install github.com/onsi/ginkgo/v2/ginkgo@latest
+go install gotest.tools/gotestsum@latest
+
+# Documentation
+go install golang.org/x/tools/cmd/godoc@latest
 ```
 
-### Wire (Dependency Injection)
+### Container and Kubernetes Tools
+
+**Docker:**
+Follow platform-specific installation:
+- **Linux**: [Docker Engine](https://docs.docker.com/engine/install/)
+- **macOS**: [Docker Desktop](https://docs.docker.com/desktop/mac/install/)
+- **Windows**: [Docker Desktop with WSL2](https://docs.docker.com/desktop/windows/install/)
+
+**Verify Docker:**
 ```bash
-go install github.com/google/wire/cmd/wire@latest
+docker --version
+docker ps
 ```
 
-### Testing Tools
+**kubectl:**
 ```bash
-# Test coverage tools
-go install golang.org/x/tools/cmd/cover@latest
+# Linux
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/
 
-# Benchmarking and profiling
-go install golang.org/x/perf/cmd/benchstat@latest
-```
-
-## Container and Kubernetes Tools
-
-### Docker Desktop Installation
-
-#### macOS
-```bash
-# Using Homebrew
-brew install --cask docker
-
-# Or download from https://www.docker.com/products/docker-desktop
-```
-
-#### Windows
-Download Docker Desktop from [docker.com](https://www.docker.com/products/docker-desktop) and install.
-
-#### Linux
-```bash
-# Ubuntu/Debian
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-
-# Add user to docker group
-sudo usermod -aG docker $USER
-# Log out and back in
-```
-
-### kubectl Installation
-```bash
 # macOS
 brew install kubectl
 
-# Linux
+# Windows (WSL2)
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-
-# Windows (PowerShell)
-choco install kubernetes-cli
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/
 ```
 
-### K3d Installation
+**K3D (for testing):**
 ```bash
-# All platforms
+# Install K3D
 curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-
-# Or using package managers
-brew install k3d  # macOS
-choco install k3d  # Windows
 ```
 
-### Helm Installation
+### Version Control
+
+**Git Configuration:**
 ```bash
-# Using script
-curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+# Set identity
+git config --global user.name "Your Name"
+git config --global user.email "your.email@example.com"
 
-# Or package managers
-brew install helm  # macOS
-choco install kubernetes-helm  # Windows
+# Set editor
+git config --global core.editor "code --wait"
+
+# Enable helpful defaults
+git config --global init.defaultBranch main
+git config --global pull.rebase false
+git config --global push.default simple
 ```
 
-## Editor Configuration
+## Environment Variables
+
+### Go Environment
+
+Add these to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.):
+
+```bash
+# Go environment
+export GOPATH=$HOME/go
+export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+
+# Go development settings
+export GOPROXY=https://proxy.golang.org,direct
+export GOSUMDB=sum.golang.org
+export CGO_ENABLED=1
+
+# Enable Go modules (default in Go 1.16+)
+export GO111MODULE=on
+```
+
+### Kubernetes Development
+
+```bash
+# Kubernetes configuration
+export KUBECONFIG=$HOME/.kube/config
+
+# K3D specific settings
+export K3D_FIX_CGROUPV2=1  # For newer Linux systems
+```
+
+### OpenFrame CLI Development
+
+```bash
+# OpenFrame development
+export OPENFRAME_DEV=1
+export OPENFRAME_LOG_LEVEL=debug
+export OPENFRAME_CONFIG_DIR=$HOME/.openframe
+
+# Optional: Custom paths for external tools
+export K3D_BINARY_PATH=/usr/local/bin/k3d
+export HELM_BINARY_PATH=/usr/local/bin/helm
+export KUBECTL_BINARY_PATH=/usr/local/bin/kubectl
+```
+
+### Platform-Specific Variables
+
+**WSL2 (Windows):**
+```bash
+# WSL2 integration
+export WSL_DISTRO_NAME=$(cat /proc/version | grep -oP 'WSL\d+')
+export DOCKER_HOST=unix:///var/run/docker.sock
+
+# Fix for systemd issues
+export XDG_RUNTIME_DIR=/tmp/runtime-$USER
+mkdir -p $XDG_RUNTIME_DIR
+chmod 0700 $XDG_RUNTIME_DIR
+```
+
+## IDE Configuration
 
 ### VS Code Configuration
 
-Create `.vscode/settings.json` in the project root:
+Create `.vscode/settings.json` in your OpenFrame CLI workspace:
+
 ```json
 {
   "go.toolsManagement.checkForUpdates": "local",
   "go.useLanguageServer": true,
-  "go.gopath": "${workspaceFolder}",
-  "go.goroot": "/usr/local/go",
+  "go.formatTool": "goimports",
   "go.lintTool": "golangci-lint",
-  "go.lintFlags": [
-    "--enable-all",
-    "--disable=wsl,nlreturn,exhaustivestruct,gofumpt"
-  ],
-  "go.buildTags": "integration",
-  "go.testFlags": ["-v", "-race", "-count=1"],
-  "go.testTimeout": "30s",
-  "files.exclude": {
-    "**/vendor/**": true,
-    "**/node_modules/**": true,
-    "**/.git/**": true
+  "go.lintOnSave": "package",
+  "go.vetOnSave": "package",
+  "go.buildOnSave": "package",
+  "go.testFlags": ["-v", "-race"],
+  "go.testTimeout": "60s",
+  "go.coverOnSave": true,
+  "go.coverageDecorator": {
+    "type": "gutter",
+    "coveredHighlightColor": "rgba(64,128,128,0.5)",
+    "uncoveredHighlightColor": "rgba(128,64,64,0.25)"
+  },
+  "files.associations": {
+    "*.yaml": "yaml",
+    "*.yml": "yaml",
+    "Dockerfile*": "dockerfile",
+    "*.go": "go"
+  },
+  "yaml.schemas": {
+    "kubernetes": "**/*.k8s.yaml"
   }
 }
 ```
 
-Create `.vscode/launch.json` for debugging:
+### Debug Configuration
+
+Create `.vscode/launch.json`:
+
 ```json
 {
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug CLI",
+      "name": "Debug OpenFrame CLI",
       "type": "go",
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}/main.go",
-      "args": ["cluster", "create", "--name", "debug-cluster"],
+      "args": ["--help"],
+      "cwd": "${workspaceFolder}",
       "env": {
+        "OPENFRAME_DEV": "1",
         "OPENFRAME_LOG_LEVEL": "debug"
-      }
+      },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug Bootstrap Command",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/main.go",
+      "args": ["bootstrap", "--dry-run"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "OPENFRAME_DEV": "1",
+        "OPENFRAME_LOG_LEVEL": "debug"
+      },
+      "console": "integratedTerminal"
     },
     {
       "name": "Debug Tests",
@@ -252,202 +341,180 @@ Create `.vscode/launch.json` for debugging:
       "request": "launch",
       "mode": "test",
       "program": "${workspaceFolder}",
-      "args": ["-test.v", "-test.run", "TestName"]
+      "args": ["-test.v"],
+      "cwd": "${workspaceFolder}"
     }
   ]
 }
 ```
 
-### Git Configuration
+## Development Utilities
 
-Configure Git for OpenFrame development:
+### Shell Aliases
+
+Add helpful aliases to your shell profile:
+
 ```bash
-# Set your identity
-git config --global user.name "Your Name"
-git config --global user.email "your.email@example.com"
+# OpenFrame development aliases
+alias of='./openframe'
+alias ofb='go build -o openframe . && ./openframe'
+alias ofd='go build -o openframe . && ./openframe --verbose'
+alias oft='go test ./... -v -race'
+alias ofc='golangci-lint run'
 
-# Helpful aliases
-git config --global alias.co checkout
-git config --global alias.br branch
-git config --global alias.ci commit
-git config --global alias.st status
+# Kubernetes aliases  
+alias k='kubectl'
+alias kgp='kubectl get pods'
+alias kgs='kubectl get svc'
+alias kga='kubectl get all'
+alias kaf='kubectl apply -f'
+alias kdel='kubectl delete'
 
-# Line ending configuration
-git config --global core.autocrlf input  # Linux/macOS
-git config --global core.autocrlf true   # Windows
+# Development workflow
+alias gb='go build'
+alias gt='go test ./...'
+alias gf='gofmt -s -w .'
+alias gi='goimports -w .'
+alias gl='golangci-lint run'
 ```
 
-## Environment Variables
+### Git Hooks
 
-Set these environment variables for development:
+Create `.git/hooks/pre-commit`:
 
-### Required Variables
 ```bash
-# Go configuration
-export GO111MODULE=on
-export CGO_ENABLED=1
+#!/bin/bash
+echo "Running pre-commit checks..."
 
-# OpenFrame CLI configuration
-export OPENFRAME_LOG_LEVEL=debug
-export OPENFRAME_CONFIG_DIR=$HOME/.openframe
-export KUBECONFIG=$HOME/.kube/config
+# Format code
+goimports -w .
+gofmt -s -w .
 
-# Development flags
-export OPENFRAME_DEV_MODE=true
-export OPENFRAME_MOCK_PROVIDERS=false
+# Run linter
+golangci-lint run
+if [ $? -ne 0 ]; then
+    echo "Linting failed. Please fix the issues before committing."
+    exit 1
+fi
+
+# Run tests
+go test ./... -race -short
+if [ $? -ne 0 ]; then
+    echo "Tests failed. Please fix the issues before committing."
+    exit 1
+fi
+
+echo "Pre-commit checks passed!"
 ```
 
-### Optional Variables
+Make it executable:
 ```bash
-# Docker configuration
-export DOCKER_HOST=unix:///var/run/docker.sock
-
-# Testing configuration
-export TEST_CLUSTER_NAME=openframe-test
-export TEST_TIMEOUT=300s
-
-# Build configuration
-export CGO_ENABLED=1
-export GOOS=linux
-export GOARCH=amd64
+chmod +x .git/hooks/pre-commit
 ```
 
-Add these to your shell profile (`.bashrc`, `.zshrc`, etc.) to persist them.
+## Verification Script
 
-## Verification
+Create a script to verify your environment setup:
 
-Verify your development environment is properly configured:
-
-### Go Environment
 ```bash
-# Check Go installation
-go version
-go env GOPATH
-go env GOPROXY
+#!/bin/bash
+# save as check-dev-env.sh
 
-# Verify development tools
-golangci-lint version
-mockgen -version
-goimports -h
-```
+echo "🔍 OpenFrame CLI Development Environment Check"
+echo "============================================="
 
-### Container Tools
-```bash
+# Check Go
+if command -v go &> /dev/null; then
+    echo "✅ Go: $(go version)"
+    echo "   GOPATH: $GOPATH"
+    echo "   GOROOT: $(go env GOROOT)"
+else
+    echo "❌ Go: Not found"
+fi
+
+# Check Go tools
+echo "🔧 Go Tools:"
+for tool in gopls goimports golangci-lint dlv; do
+    if command -v $tool &> /dev/null; then
+        echo "   ✅ $tool"
+    else
+        echo "   ❌ $tool: Not found"
+    fi
+done
+
 # Check Docker
-docker version
-docker ps
+if command -v docker &> /dev/null && docker ps &> /dev/null; then
+    echo "✅ Docker: $(docker --version)"
+else
+    echo "❌ Docker: Not found or not running"
+fi
 
 # Check Kubernetes tools
-kubectl version --client
-k3d version
-helm version
+for tool in kubectl k3d helm; do
+    if command -v $tool &> /dev/null; then
+        echo "✅ $tool: $(command $tool version --client 2>/dev/null | head -1)"
+    else
+        echo "❌ $tool: Not found"
+    fi
+done
+
+# Check IDE
+if command -v code &> /dev/null; then
+    echo "✅ VS Code: $(code --version | head -1)"
+else
+    echo "ℹ️  VS Code: Not found (optional)"
+fi
+
+echo ""
+echo "Environment check complete!"
 ```
 
-### OpenFrame CLI Build Test
+Run the verification:
 ```bash
-# Clone the repository (if not done already)
-git clone https://github.com/flamingo-stack/openframe-cli.git
-cd openframe-cli
-
-# Build the CLI
-make build
-
-# Run basic test
-./bin/openframe --version
-```
-
-Expected output:
-```text
-OpenFrame CLI - Kubernetes cluster bootstrapping and development tools
-Version: dev (none) built on unknown
-```
-
-## IDE-Specific Setup
-
-### VS Code Tasks
-
-Create `.vscode/tasks.json` for common development tasks:
-```json
-{
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "build",
-      "type": "shell",
-      "command": "make build",
-      "group": "build",
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared"
-      }
-    },
-    {
-      "label": "test",
-      "type": "shell",
-      "command": "make test",
-      "group": "test",
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared"
-      }
-    },
-    {
-      "label": "lint",
-      "type": "shell",
-      "command": "make lint",
-      "group": "build"
-    }
-  ]
-}
-```
-
-## Troubleshooting Common Issues
-
-### Go Module Issues
-```bash
-# Clean module cache
-go clean -modcache
-
-# Verify module
-go mod tidy
-go mod verify
-```
-
-### Docker Permission Issues (Linux)
-```bash
-# Add user to docker group
-sudo usermod -aG docker $USER
-# Logout and login again
-```
-
-### kubectl Context Issues
-```bash
-# Reset kubectl config
-kubectl config unset current-context
-kubectl config get-contexts
-```
-
-### IDE Performance Issues
-```bash
-# Exclude large directories from indexing
-# Add to .gitignore or IDE settings:
-vendor/
-.git/
-node_modules/
-*.log
+chmod +x check-dev-env.sh
+./check-dev-env.sh
 ```
 
 ## Next Steps
 
-With your development environment configured:
+After completing the environment setup:
 
-1. **[Clone and build locally](local-development.md)** - Get the code running
-2. **[Understand the architecture](../architecture/overview.md)** - Learn the system design
-3. **[Run the test suite](../testing/overview.md)** - Verify everything works
-4. **[Read contributing guidelines](../contributing/guidelines.md)** - Follow our standards
+1. **[Local Development Guide](local-development.md)** - Clone and build the project
+2. **[Architecture Overview](../architecture/README.md)** - Understand the codebase structure
+3. **[Contributing Guidelines](../contributing/guidelines.md)** - Learn the development workflow
 
-> **💡 Pro Tip**: Bookmark the [Makefile targets reference](../reference/makefile.md) for quick access to common development commands.
+## Troubleshooting
+
+### Common Go Issues
+
+**GOPROXY errors:**
+```bash
+export GOPROXY=direct
+go clean -modcache
+go mod download
+```
+
+**Module verification failures:**
+```bash
+export GOSUMDB=off  # Temporary workaround
+go mod tidy
+export GOSUMDB=sum.golang.org  # Re-enable
+```
+
+### Docker Permission Issues (Linux)
+
+```bash
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+### WSL2 Integration Issues
+
+```bash
+# Reset Docker WSL integration
+wsl --shutdown
+# Restart Docker Desktop
+# Re-enable WSL integration in Docker settings
+```
+
+Your development environment is now ready for OpenFrame CLI development! The next step is to clone the repository and start building.

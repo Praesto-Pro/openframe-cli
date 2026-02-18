@@ -1,223 +1,277 @@
 # Prerequisites
 
-Before installing OpenFrame CLI, ensure your system meets the requirements and has the necessary dependencies installed.
+Before you can use OpenFrame CLI effectively, ensure your system meets the following requirements. The CLI includes smart prerequisite checking and can auto-install many tools, but some manual setup may be required.
 
 ## System Requirements
 
-### Minimum Requirements
+### Hardware Requirements
 
-| Resource | Requirement |
-|----------|-------------|
-| **RAM** | 24GB |
-| **CPU** | 6 cores |
-| **Disk Space** | 50GB free |
-| **Operating System** | Windows 10+, macOS 10.15+, Ubuntu 18.04+, or equivalent Linux |
+| Component | Minimum | Recommended |
+|-----------|---------|-------------|
+| **RAM** | 24GB | 32GB |
+| **CPU** | 6 cores | 12 cores |
+| **Disk Space** | 50GB free | 100GB free |
+| **Network** | Stable internet connection | High-speed broadband |
 
-### Recommended Requirements
+### Operating System Support
 
-| Resource | Recommendation |
-|----------|----------------|
-| **RAM** | 32GB |
-| **CPU** | 12 cores |
-| **Disk Space** | 100GB free |
-| **Operating System** | Latest stable versions |
+| Platform | Status | Notes |
+|----------|---------|-------|
+| **Linux** | ✅ Full Support | All distributions |
+| **macOS** | ✅ Full Support | Intel and Apple Silicon |
+| **Windows** | ✅ WSL2 Required | Windows 10/11 with WSL2 |
 
-> **⚠️ Important**: These requirements ensure smooth operation of Kubernetes clusters and all development tools. Lower specifications may result in performance issues.
+> **Windows Users**: OpenFrame CLI requires WSL2 (Windows Subsystem for Linux 2). The CLI automatically detects WSL environments and adapts command execution accordingly.
 
-## Required Software Dependencies
-
-The OpenFrame CLI automatically checks and can install missing prerequisites, but you may want to install them manually for better control.
+## Required Software
 
 ### Core Dependencies
 
-| Tool | Version | Purpose | Installation |
+These tools are **required** and will be auto-installed by the CLI if missing:
+
+| Tool | Version | Purpose | Auto-Install |
 |------|---------|---------|--------------|
-| **Docker** | 20.10+ | Container runtime for K3d clusters | [Install Docker](https://docs.docker.com/get-docker/) |
-| **kubectl** | 1.24+ | Kubernetes command-line tool | [Install kubectl](https://kubernetes.io/docs/tasks/tools/) |
-| **Helm** | 3.8+ | Kubernetes package manager | [Install Helm](https://helm.sh/docs/intro/install/) |
-| **K3d** | 5.4+ | Lightweight Kubernetes in Docker | [Install K3d](https://k3d.io/) |
+| **Go** | 1.19+ | CLI runtime | ❌ Manual |
+| **Docker** | 20.10+ | Container runtime | ❌ Manual |
+| **K3D** | 5.0+ | Kubernetes clusters | ✅ Auto |
+| **Helm** | 3.8+ | Package management | ✅ Auto |
+| **kubectl** | 1.24+ | Kubernetes CLI | ✅ Auto |
 
 ### Development Tools (Optional)
 
-| Tool | Version | Purpose | Installation |
+These tools enhance the development experience:
+
+| Tool | Version | Purpose | Auto-Install |
 |------|---------|---------|--------------|
-| **Telepresence** | 2.10+ | Local service intercepts | [Install Telepresence](https://www.telepresence.io/docs/latest/install/) |
-| **jq** | 1.6+ | JSON processing for CLI operations | [Install jq](https://stedolan.github.io/jq/download/) |
-| **Git** | 2.30+ | Version control for GitOps workflows | [Install Git](https://git-scm.com/downloads) |
+| **Telepresence** | 2.10+ | Service intercepts | ✅ Auto |
+| **jq** | 1.6+ | JSON processing | ✅ Auto |
+| **Git** | 2.30+ | Version control | ❌ Manual |
 
-## Platform-Specific Installation
+## Installation Verification
 
-### Windows
+### Manual Prerequisites Check
 
-1. **Download the installer** from the [releases page](https://github.com/flamingo-stack/openframe-cli/releases)
-2. **Run the installer** as Administrator
-3. **Add to PATH** (installer does this automatically)
-4. **Verify installation** in Command Prompt or PowerShell:
+Before running OpenFrame CLI, verify these core components are installed:
 
-```bash
-openframe --version
-```
-
-### macOS
-
-#### Using Homebrew (Recommended)
-```bash
-# Add the OpenFrame tap (if available)
-brew tap flamingo-stack/openframe
-
-# Install OpenFrame CLI
-brew install openframe-cli
-```
-
-#### Manual Installation
-1. Download the macOS binary from releases
-2. Move to `/usr/local/bin/`:
+#### 1. Go Installation
 
 ```bash
-sudo mv openframe-cli /usr/local/bin/openframe
-sudo chmod +x /usr/local/bin/openframe
+go version
 ```
 
-### Linux
+**Expected output:**
+```text
+go version go1.19.0 linux/amd64
+```
 
-#### Using Package Manager (Ubuntu/Debian)
+If Go is not installed:
+- **Linux/macOS**: Visit [golang.org/dl](https://golang.org/dl)
+- **Windows WSL2**: Install inside WSL2 environment
+
+#### 2. Docker Installation
+
 ```bash
-# Download the .deb package
-wget https://github.com/flamingo-stack/openframe-cli/releases/download/v1.0.0/openframe-cli_1.0.0_linux_amd64.deb
-
-# Install the package
-sudo dpkg -i openframe-cli_1.0.0_linux_amd64.deb
+docker --version
+docker ps
 ```
 
-#### Manual Installation
+**Expected output:**
+```text
+Docker version 20.10.21, build baeda1f
+CONTAINER ID   IMAGE   COMMAND   CREATED   STATUS   PORTS   NAMES
+```
+
+If Docker is not running:
 ```bash
-# Download and extract
-wget https://github.com/flamingo-stack/openframe-cli/releases/download/v1.0.0/openframe-cli_1.0.0_linux_amd64.tar.gz
-tar -xzf openframe-cli_1.0.0_linux_amd64.tar.gz
+# Linux
+sudo systemctl start docker
+sudo systemctl enable docker
 
-# Move to system PATH
-sudo mv openframe /usr/local/bin/
-sudo chmod +x /usr/local/bin/openframe
+# macOS
+# Start Docker Desktop application
+
+# Windows WSL2
+# Start Docker Desktop with WSL2 integration enabled
 ```
+
+#### 3. WSL2 (Windows Only)
+
+```bash
+wsl --version
+```
+
+**Expected output:**
+```text
+WSL version: 1.0.3.0
+```
+
+If WSL2 is not installed, follow [Microsoft's WSL2 installation guide](https://docs.microsoft.com/en-us/windows/wsl/install).
 
 ## Environment Variables
 
-OpenFrame CLI uses these environment variables for configuration:
+OpenFrame CLI uses these environment variables when available:
 
-| Variable | Purpose | Default | Example |
-|----------|---------|---------|---------|
-| `KUBECONFIG` | Kubernetes config file location | `~/.kube/config` | `/home/user/.kube/config` |
-| `OPENFRAME_LOG_LEVEL` | Logging verbosity | `info` | `debug` |
-| `OPENFRAME_CLUSTER_NAME` | Default cluster name | `openframe-local` | `my-dev-cluster` |
-| `DOCKER_HOST` | Docker daemon connection | System default | `unix:///var/run/docker.sock` |
+| Variable | Description | Required | Example |
+|----------|-------------|----------|---------|
+| `HOME` | User home directory | ✅ Yes | `/home/username` |
+| `PATH` | Executable search path | ✅ Yes | `/usr/local/bin:/usr/bin` |
+| `KUBECONFIG` | Kubectl configuration | ❌ Optional | `~/.kube/config` |
+| `DOCKER_HOST` | Docker daemon socket | ❌ Optional | `unix:///var/run/docker.sock` |
 
 ### Setting Environment Variables
 
-#### Windows (PowerShell)
+**Linux/macOS:**
 ```bash
-$env:KUBECONFIG = "C:\Users\username\.kube\config"
-$env:OPENFRAME_LOG_LEVEL = "debug"
+export KUBECONFIG=$HOME/.kube/config
 ```
 
-#### macOS/Linux (Bash)
-```bash
-export KUBECONFIG=~/.kube/config
-export OPENFRAME_LOG_LEVEL=debug
+**Windows (PowerShell):**
+```powershell
+$env:KUBECONFIG = "$env:USERPROFILE\.kube\config"
 ```
 
-To make these permanent, add them to your shell profile (`.bashrc`, `.zshrc`, etc.).
-
-## Verification Commands
-
-After installation, verify your setup with these commands:
-
-### Verify OpenFrame CLI Installation
-```bash
-# Check version
-openframe --version
-
-# Verify command structure
-openframe --help
-```
-
-### Verify Dependencies
-```bash
-# Check Docker
-docker --version
-docker ps
-
-# Check kubectl
-kubectl version --client
-
-# Check Helm
-helm version
-
-# Check K3d
-k3d --version
-```
-
-### Verify System Resources
-```bash
-# Check available memory (Linux/macOS)
-free -h
-
-# Check CPU cores (Linux/macOS)
-nproc
-
-# Check disk space
-df -h
-```
+Add to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) for persistence.
 
 ## Network Requirements
 
-Ensure your system can access these external resources:
+### Required Connectivity
 
-| Resource | Purpose | Ports |
-|----------|---------|-------|
-| **Docker Hub** | Container image pulls | 443 (HTTPS) |
-| **GitHub** | Repository access | 443 (HTTPS), 22 (SSH) |
-| **Kubernetes API** | Cluster communication | 6443, 8443 |
-| **ArgoCD** | GitOps operations | 443 (HTTPS) |
+OpenFrame CLI needs internet access for:
+
+- **Container Images**: Pull from GHCR, Docker Hub, Quay.io
+- **Chart Repositories**: Helm charts from various sources
+- **GitHub Integration**: Clone and sync repositories
+- **Tool Downloads**: Auto-install prerequisites
 
 ### Firewall Considerations
 
-If behind a corporate firewall, ensure these outbound connections are allowed:
-- Docker registry access (docker.io, gcr.io, quay.io)
-- Helm chart repositories
-- Git repositories for ArgoCD
-- Telepresence relay services
+Ensure these ports are accessible:
+
+| Port | Purpose | Direction |
+|------|---------|-----------|
+| **80/443** | HTTPS traffic (charts, images) | Outbound |
+| **22** | Git SSH operations | Outbound |
+| **6443** | Kubernetes API server | Inbound |
+| **8080-8090** | Development services | Inbound |
+
+### Corporate Networks
+
+If you're behind a corporate firewall:
+
+1. Configure Docker daemon proxy settings
+2. Set Git HTTP/HTTPS proxy configuration
+3. Configure npm/yarn proxy (if applicable)
+4. Ensure container registries are accessible
+
+## Account Requirements
+
+### GitHub Account (Recommended)
+
+While not strictly required, a GitHub account enables:
+- Private repository access for chart installations
+- SSH key authentication for Git operations
+- GitHub Container Registry (GHCR) access
+
+### Container Registry Access
+
+For production deployments, ensure access to:
+- **GitHub Container Registry (GHCR)**: ghcr.io
+- **Docker Hub**: hub.docker.com
+- **Quay.io**: quay.io
+
+## Verification Commands
+
+Run these commands to verify your environment is ready:
+
+### System Check Script
+
+```bash
+#!/bin/bash
+echo "=== OpenFrame CLI Prerequisites Check ==="
+
+# Check Go
+if command -v go &> /dev/null; then
+    echo "✅ Go: $(go version)"
+else
+    echo "❌ Go: Not found - install from https://golang.org/dl"
+fi
+
+# Check Docker
+if command -v docker &> /dev/null && docker ps &> /dev/null; then
+    echo "✅ Docker: $(docker --version)"
+else
+    echo "❌ Docker: Not found or not running"
+fi
+
+# Check system resources
+echo "📊 System Resources:"
+echo "   RAM: $(free -h | grep '^Mem:' | awk '{print $2}') total"
+echo "   Disk: $(df -h / | awk 'NR==2 {print $4}') free"
+
+# Check network connectivity
+if curl -s --connect-timeout 5 https://github.com &> /dev/null; then
+    echo "✅ Network: GitHub accessible"
+else
+    echo "❌ Network: Cannot reach GitHub"
+fi
+
+echo "=== Prerequisites check complete ==="
+```
+
+Save as `check-prereqs.sh`, make executable, and run:
+
+```bash
+chmod +x check-prereqs.sh
+./check-prereqs.sh
+```
 
 ## Troubleshooting Common Issues
 
-### Docker Permission Issues (Linux)
+### Docker Permission Denied (Linux)
+
 ```bash
-# Add user to docker group
 sudo usermod -aG docker $USER
-
-# Log out and back in, then test
-docker ps
+newgrp docker
+# Or logout and login again
 ```
 
-### kubectl Connection Issues
+### WSL2 Integration Issues (Windows)
+
+1. Open Docker Desktop
+2. Go to Settings → Resources → WSL Integration
+3. Enable integration with your WSL2 distro
+
+### Port Conflicts
+
+If ports 6443 or 8080-8090 are in use:
 ```bash
-# Check cluster connection
-kubectl cluster-info
+# Check which process is using a port
+sudo lsof -i :6443
+sudo netstat -tulpn | grep 6443
 
-# Verify config
-kubectl config current-context
+# Kill conflicting processes if needed
+sudo kill -9 <process_id>
 ```
 
-### Resource Constraints
-If you experience performance issues:
-1. Close unnecessary applications
-2. Increase Docker resource limits
-3. Consider using a smaller K3d cluster configuration
+### Corporate Proxy Issues
 
-## What's Next?
+Configure Docker proxy in `/etc/docker/daemon.json`:
+```json
+{
+  "proxies": {
+    "default": {
+      "httpProxy": "http://proxy.corporate.com:8080",
+      "httpsProxy": "http://proxy.corporate.com:8080"
+    }
+  }
+}
+```
 
-Once you've verified all prerequisites are met:
+## Next Steps
 
-1. **[Quick Start](quick-start.md)** - Bootstrap your first OpenFrame environment
-2. **[First Steps](first-steps.md)** - Learn essential OpenFrame operations
+Once you've verified all prerequisites:
 
-> **💡 Pro Tip**: The OpenFrame CLI includes an automatic prerequisite checker that runs before major operations. It will guide you through installing any missing dependencies.
+1. **[Quick Start Guide](quick-start.md)** - Install and run OpenFrame CLI
+2. **[First Steps](first-steps.md)** - Explore core features
+
+The OpenFrame CLI will automatically check for missing tools and attempt to install them during first run. If any critical prerequisites are missing, the CLI will provide specific installation instructions for your platform.

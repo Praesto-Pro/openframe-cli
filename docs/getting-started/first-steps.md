@@ -1,316 +1,346 @@
-# First Steps with OpenFrame
+# First Steps with OpenFrame CLI
 
-Congratulations! You've successfully bootstrapped OpenFrame. This guide covers the essential operations and workflows to get you productive quickly.
+Congratulations! You've successfully installed OpenFrame CLI and bootstrapped your first cluster. This guide will walk you through the essential next steps to get the most out of your OpenFrame environment.
 
-## Essential OpenFrame Operations
+## The 5 Essential First Steps
 
 ### 1. Explore Your Cluster
 
 Start by understanding what was created during bootstrap:
 
 ```bash
-# View cluster information
-openframe cluster status
+# Check overall cluster health
+./openframe cluster status
 
-# List all running clusters
-openframe cluster list
+# List all available clusters
+./openframe cluster list
 
-# Check cluster details
-kubectl cluster-info
-kubectl get nodes
+# View detailed cluster information
+./openframe cluster status --verbose
 ```
 
-You should see output similar to:
-```text
-Kubernetes control plane is running at https://0.0.0.0:6443
-k3s is running at https://0.0.0.0:6443
-```
+**What you'll see:**
+- Cluster node status and resource usage
+- ArgoCD deployment health
+- Application sync status
+- Network configuration details
 
-### 2. Access ArgoCD Dashboard
+### 2. Navigate the ArgoCD Interface
 
-ArgoCD is your GitOps control center. Access it through port forwarding:
+ArgoCD is your GitOps control center. Access it and explore:
 
 ```bash
-# Forward ArgoCD server port
-kubectl port-forward svc/argocd-server -n argocd 8080:443
-
-# Get initial admin password
-kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d
+# Get ArgoCD credentials (if you missed them)
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
 
-Open your browser to `https://localhost:8080` and login with:
-- **Username**: `admin`
-- **Password**: (from command above)
+**Navigate to:** `https://localhost:8080`
 
-> **💡 Pro Tip**: Accept the self-signed certificate warning in your browser for local development.
+**Key areas to explore:**
+- **Applications**: View all deployed services and their health
+- **Repositories**: See connected Git repositories
+- **Settings**: Review cluster configuration
+- **Logs**: Monitor deployment activities
 
-### 3. Understand Your Applications
+### 3. Understand the Application Architecture
 
-View applications managed by ArgoCD:
+OpenFrame follows the app-of-apps pattern. View your applications:
 
 ```bash
-# List all ArgoCD applications
+# List ArgoCD applications
 kubectl get applications -n argocd
 
 # Describe a specific application
-kubectl describe application app-of-apps -n argocd
-```
+kubectl describe application api-service -n argocd
 
-### 4. Explore Namespaces
-
-See what namespaces were created:
-
-```bash
-# List all namespaces
-kubectl get namespaces
-
-# Check resources in ArgoCD namespace
-kubectl get all -n argocd
-```
-
-### 5. Monitor Application Health
-
-Check the status of your applications:
-
-```bash
-# View application sync status
-kubectl get applications -n argocd -o wide
-
-# Check pod status across namespaces
+# View application pods across all namespaces
 kubectl get pods --all-namespaces
 ```
 
-## Common Initial Configuration
+**Default Applications Include:**
+- **API Service**: Core backend API
+- **Gateway Service**: API gateway and routing
+- **UI Service**: Frontend application
+- **Monitoring**: Observability stack
+- **Ingress**: Traffic management
 
-### Configure kubectl Context
+### 4. Test Local Development Workflow
 
-Ensure your kubectl is using the correct context:
-
-```bash
-# View current context
-kubectl config current-context
-
-# List available contexts
-kubectl config get-contexts
-
-# Switch to OpenFrame cluster (if needed)
-kubectl config use-context k3d-openframe-local
-```
-
-### Set Default Namespace (Optional)
-
-To avoid typing `-n namespace` repeatedly:
-
-```bash
-# Set default namespace for kubectl
-kubectl config set-context --current --namespace=argocd
-
-# Or use kubens if available
-kubens argocd
-```
-
-### Configure ArgoCD CLI (Optional)
-
-For advanced ArgoCD operations:
-
-```bash
-# Download ArgoCD CLI
-curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
-
-# Login to ArgoCD
-argocd login localhost:8080 --username admin --password <password>
-```
-
-## Key Features to Explore
-
-### 1. Application Deployment
-
-Deploy a new application through ArgoCD:
-
-<details>
-<summary>📦 Deploy Sample Application</summary>
-
-Create a simple application manifest:
-
-```yaml
-# sample-app.yaml
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: sample-nginx
-  namespace: argocd
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/flamingo-stack/openframe-examples
-    targetRevision: HEAD
-    path: nginx-example
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: default
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-```
-
-Apply the application:
-```bash
-kubectl apply -f sample-app.yaml
-```
-
-</details>
-
-### 2. Development Workflows
-
-Start development with service intercepts:
+Set up your first development intercept:
 
 ```bash
 # List available services for intercept
-openframe dev intercept
+./openframe dev intercept --list
 
-# Scaffold a new service
-openframe dev scaffold
+# Create an intercept for the API service
+./openframe dev intercept api-service
+
+# This will:
+# • Set up Telepresence intercept
+# • Route traffic to your local development server
+# • Provide instructions for local development
 ```
 
-### 3. Cluster Management
+**Benefits of intercepts:**
+- Test changes against the full cluster environment
+- Debug services with real dependencies
+- Faster development iteration cycles
 
-Manage multiple clusters:
+### 5. Practice Cluster Management
+
+Learn the essential cluster operations:
 
 ```bash
-# Create additional clusters
-openframe cluster create --name dev-cluster
+# Create a new cluster for experimentation
+./openframe cluster create dev-cluster --dry-run
 
-# List all managed clusters
-openframe cluster list
+# Actually create it
+./openframe cluster create dev-cluster
 
 # Switch between clusters
+kubectl config get-contexts
 kubectl config use-context k3d-dev-cluster
+
+# Clean up when done
+./openframe cluster delete dev-cluster
 ```
 
-## Essential Workflows
+## Common Configuration Tasks
 
-### Workflow 1: Deploy and Update Applications
+### Configure Git Integration
 
-```mermaid
-sequenceDiagram
-    participant Dev as Developer
-    participant Git as Git Repository
-    participant ArgoCD as ArgoCD
-    participant K8s as Kubernetes
-    
-    Dev->>Git: Push application changes
-    ArgoCD->>Git: Poll for changes
-    ArgoCD->>ArgoCD: Detect drift
-    ArgoCD->>K8s: Apply manifests
-    K8s-->>ArgoCD: Deployment status
-    ArgoCD-->>Dev: Sync complete
+If you plan to use private repositories:
+
+```bash
+# Configure Git credentials for ArgoCD
+kubectl create secret generic git-credentials \
+  --from-literal=username=your-username \
+  --from-literal=password=your-token \
+  -n argocd
 ```
 
-### Workflow 2: Local Development with Intercepts
+### Set Up Container Registry Access
 
-```mermaid
-sequenceDiagram
-    participant Dev as Developer
-    participant CLI as OpenFrame CLI
-    participant Telepresence as Telepresence
-    participant K8s as Kubernetes Cluster
-    
-    Dev->>CLI: openframe dev intercept
-    CLI->>Telepresence: Setup intercept
-    Telepresence->>K8s: Route traffic locally
-    Dev->>Dev: Develop locally
-    Dev->>K8s: Test in real environment
+For private container images:
+
+```bash
+# Create registry secret
+kubectl create secret docker-registry ghcr-secret \
+  --docker-server=ghcr.io \
+  --docker-username=your-username \
+  --docker-password=your-token \
+  --docker-email=your-email
 ```
 
-## Troubleshooting Common Issues
+### Customize Helm Values
 
-### Application Not Syncing
+Modify application configurations:
+
+```bash
+# Launch the chart installation wizard
+./openframe chart install
+
+# Follow the interactive prompts to:
+# • Select deployment mode
+# • Configure service parameters
+# • Set resource limits
+# • Enable monitoring features
+```
+
+## Essential Commands Reference
+
+### Cluster Operations
+
+```bash
+# Cluster lifecycle
+./openframe cluster create <name>     # Create new cluster
+./openframe cluster list              # List all clusters  
+./openframe cluster status <name>     # Check cluster health
+./openframe cluster delete <name>     # Remove cluster
+
+# Cluster maintenance
+./openframe cluster cleanup           # Clean up resources
+```
+
+### Chart Management
+
+```bash
+# Chart operations
+./openframe chart install             # Interactive installation
+./openframe chart install --mode=ghcr # GHCR deployment mode
+./openframe chart install --mode=local # Local development mode
+
+# Chart status
+kubectl get applications -n argocd    # View ArgoCD apps
+kubectl get pods --all-namespaces     # View all pods
+```
+
+### Development Tools
+
+```bash
+# Service intercepts
+./openframe dev intercept <service>   # Create intercept
+./openframe dev intercept --list      # List available services
+./openframe dev intercept --cleanup   # Remove all intercepts
+
+# Service scaffolding
+./openframe dev scaffold <service>    # Create new service template
+```
+
+### Bootstrap Operations
+
+```bash
+# Complete environment setup
+./openframe bootstrap                 # Full bootstrap
+./openframe bootstrap --cluster-only # Just cluster creation
+./openframe bootstrap --charts-only  # Just chart installation
+```
+
+## Exploring Advanced Features
+
+### Multi-Cluster Management
+
+```bash
+# Create multiple environments
+./openframe cluster create staging
+./openframe cluster create production
+
+# Deploy to different clusters
+kubectl config use-context k3d-staging
+./openframe chart install --mode=staging
+
+kubectl config use-context k3d-production  
+./openframe chart install --mode=production
+```
+
+### Service Mesh Integration
+
+If using service mesh features:
+
+```bash
+# Check service mesh status
+kubectl get pods -n istio-system
+
+# View service mesh configuration
+kubectl get virtualservices --all-namespaces
+kubectl get destinationrules --all-namespaces
+```
+
+### Monitoring and Observability
+
+Access monitoring dashboards:
+
+```bash
+# Check monitoring stack
+kubectl get pods -n monitoring
+
+# Port forward to Grafana (if installed)
+kubectl port-forward svc/grafana 3000:3000 -n monitoring
+
+# Port forward to Prometheus (if installed)
+kubectl port-forward svc/prometheus 9090:9090 -n monitoring
+```
+
+## Troubleshooting Your Environment
+
+### Application Health Checks
 
 ```bash
 # Check application status
-kubectl describe application <app-name> -n argocd
+kubectl get applications -n argocd
 
-# Force sync application
-kubectl patch application <app-name> -n argocd --type merge -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"HEAD"}}}'
+# View application logs
+kubectl logs -f deployment/api-service -n default
+
+# Debug failing pods
+kubectl describe pod <pod-name> -n <namespace>
+kubectl logs <pod-name> -n <namespace>
 ```
 
-### Cluster Connection Issues
+### Network Connectivity
 
 ```bash
-# Verify cluster is running
-docker ps | grep k3d
+# Test service connectivity
+kubectl exec -it <pod-name> -- curl http://api-service:8080/health
 
-# Restart cluster if needed
-openframe cluster delete openframe-local
-openframe cluster create --name openframe-local
+# Check ingress configuration  
+kubectl get ingress --all-namespaces
+kubectl describe ingress <ingress-name>
 ```
 
-### Port Conflicts
+### Resource Issues
 
 ```bash
-# Check what's using port 6443
-lsof -i :6443
+# Check resource usage
+kubectl top nodes
+kubectl top pods --all-namespaces
 
-# Create cluster with different port
-openframe cluster create --name test-cluster --api-port 6444
+# View resource limits
+kubectl describe limitrange --all-namespaces
+kubectl describe resourcequota --all-namespaces
 ```
 
-## Where to Get Help
+## Development Best Practices
 
-### 1. Built-in Help System
-```bash
-# General help
-openframe --help
+### Local Development Setup
 
-# Command-specific help
-openframe cluster --help
-openframe bootstrap --help
-```
+1. **Use Intercepts**: Always use `./openframe dev intercept` for local development
+2. **Monitor Logs**: Keep application logs open while developing
+3. **Test Incrementally**: Make small changes and test frequently
+4. **Clean Up**: Remove intercepts when switching contexts
 
-### 2. Verbose Mode for Debugging
-```bash
-# Run commands with detailed output
-openframe cluster create --name debug-cluster --verbose
-```
+### Cluster Management
 
-### 3. Check Application Logs
-```bash
-# View ArgoCD logs
-kubectl logs -n argocd -l app.kubernetes.io/name=argocd-server
+1. **Use Descriptive Names**: Name clusters by purpose (dev, staging, feature-xyz)
+2. **Regular Cleanup**: Delete unused clusters to save resources
+3. **Monitor Health**: Check cluster status regularly
+4. **Backup Configurations**: Export important kubectl configs
 
-# Check specific application
-kubectl logs -n <namespace> -l app=<app-name>
-```
+### GitOps Workflow
 
-## Next Learning Paths
+1. **Small Commits**: Make incremental changes to application configs
+2. **Monitor Sync**: Watch ArgoCD for sync status after changes
+3. **Rollback Ready**: Know how to revert changes quickly
+4. **Document Changes**: Comment on configuration modifications
 
-Based on your role and interests, explore these areas:
+## Where to Go Next
 
-### For Platform Engineers
-- **[Development Environment Setup](../development/setup/environment.md)** - IDE and tooling setup
-- **[Architecture Overview](../development/architecture/overview.md)** - Deep dive into OpenFrame architecture
+Based on your role and interests:
 
 ### For Developers
-- **Local Development** - Telepresence intercepts and debugging
-- **Service Deployment** - Building and deploying applications
+- Learn about service intercepts and local development workflows
+- Explore the application architecture and API patterns
+- Practice debugging and monitoring techniques
 
-### For DevOps Engineers
-- **Cluster Management** - Multi-cluster setups and scaling
-- **GitOps Workflows** - Advanced ArgoCD configurations
+### For Platform Engineers  
+- Study the chart management and deployment patterns
+- Learn multi-cluster management strategies
+- Explore security and monitoring configurations
 
-## Quick Reference Commands
+### For DevOps Teams
+- Master the bootstrap and cluster lifecycle operations
+- Learn GitOps best practices with ArgoCD
+- Explore CI/CD integration patterns
 
-| Task | Command |
-|------|---------|
-| **Cluster Status** | `openframe cluster status` |
-| **List Clusters** | `openframe cluster list` |
-| **View Applications** | `kubectl get applications -n argocd` |
-| **ArgoCD Dashboard** | `kubectl port-forward svc/argocd-server -n argocd 8080:443` |
-| **Delete Cluster** | `openframe cluster delete <name>` |
-| **Bootstrap New Environment** | `openframe bootstrap` |
-| **Start Intercept** | `openframe dev intercept` |
-| **Scaffold Service** | `openframe dev scaffold` |
+## Getting Help
 
-> **🚀 You're Ready!** You now have a solid foundation in OpenFrame operations. Continue exploring the platform's capabilities or dive deeper into specific areas that interest you most.
+When you need assistance:
+
+1. **Built-in Help**: Use `./openframe <command> --help`
+2. **Verbose Output**: Add `--verbose` to commands for detailed logging
+3. **Community Support**: Join [OpenMSP Slack](https://join.slack.com/t/openmsp/shared_invite/zt-36bl7mx0h-3~U2nFH6nqHqoTPXMaHEHA)
+4. **Documentation**: Refer to the architecture and development guides
+
+## Summary
+
+You've now completed the essential first steps with OpenFrame CLI:
+
+✅ **Explored** your cluster and applications  
+✅ **Navigated** the ArgoCD interface  
+✅ **Understood** the application architecture  
+✅ **Tested** local development workflows  
+✅ **Practiced** cluster management operations  
+
+The OpenFrame CLI is designed to grow with you. As you become more comfortable with these basics, explore the advanced features and development workflows that make OpenFrame a powerful platform for MSP operations.
+
+Remember: The CLI includes interactive wizards and comprehensive help for every operation. Don't hesitate to experiment - clusters can be created and destroyed quickly, making it safe to try new approaches and configurations.
