@@ -22,6 +22,11 @@ func fileExists(path string) bool {
 }
 
 func isMkcertInstalled() bool {
+	// On Windows, check mkcert in WSL2 (consistent with all other tools)
+	if runtime.GOOS == "windows" {
+		cmd := exec.Command("wsl", "-d", "Ubuntu", "command", "-v", "mkcert")
+		return cmd.Run() == nil
+	}
 	return commandExists("mkcert")
 }
 
@@ -48,7 +53,7 @@ func certificateInstallHelp() string {
 	case "linux":
 		return "Certificates: mkcert will be downloaded and certificates generated automatically"
 	case "windows":
-		return "Certificates: Please install mkcert manually from https://github.com/FiloSottile/mkcert and run 'mkcert localhost 127.0.0.1'"
+		return "Certificates: mkcert will be installed inside WSL2 and certificates generated automatically"
 	default:
 		return "Certificates: Please install mkcert from https://github.com/FiloSottile/mkcert"
 	}
@@ -98,22 +103,40 @@ func (c *CertificateInstaller) installMkcert() error {
 	case "linux":
 		return c.installMkcertLinux()
 	case "windows":
-		return fmt.Errorf("automatic mkcert installation on Windows not supported. Please install from https://github.com/FiloSottile/mkcert")
+		return c.installMkcertWindows()
 	default:
 		return fmt.Errorf("automatic mkcert installation not supported on %s", runtime.GOOS)
 	}
 }
 
 func (c *CertificateInstaller) installMkcertMacOS() error {
-	if !commandExists("brew") {
-		return fmt.Errorf("Homebrew is required for automatic mkcert installation on macOS. Please install brew first: https://brew.sh")
+	// Try Homebrew first
+	if commandExists("brew") {
+		cmd := exec.Command("brew", "install", "mkcert")
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("failed to install mkcert via Homebrew: %w", err)
+		}
+		return nil
 	}
 
-	cmd := exec.Command("brew", "install", "mkcert")
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to install mkcert: %w", err)
+	// Fallback: download binary directly
+	arch := "amd64"
+	if runtime.GOARCH == "arm64" {
+		arch = "arm64"
 	}
-
+	downloadURL := fmt.Sprintf("https://dl.filippo.io/mkcert/latest?for=darwin/%s", arch)
+	downloadCmd := fmt.Sprintf("curl -fsSL -o /usr/local/bin/mkcert '%s' && chmod +x /usr/local/bin/mkcert", downloadURL)
+	if err := c.runShellCommand(downloadCmd); err != nil {
+		// Try user-local path if /usr/local/bin is not writable
+		homeDir, _ := os.UserHomeDir()
+		binDir := filepath.Join(homeDir, "bin")
+		os.MkdirAll(binDir, 0755)
+		mkcertPath := filepath.Join(binDir, "mkcert")
+		downloadCmd = fmt.Sprintf("curl -fsSL -o '%s' '%s' && chmod +x '%s'", mkcertPath, downloadURL, mkcertPath)
+		if err := c.runShellCommand(downloadCmd); err != nil {
+			return fmt.Errorf("failed to download mkcert binary. Install Homebrew (https://brew.sh) or download manually from https://github.com/FiloSottile/mkcert: %w", err)
+		}
+	}
 	return nil
 }
 
@@ -130,8 +153,14 @@ func (c *CertificateInstaller) installMkcertLinux() error {
 
 	mkcertPath := filepath.Join(binDir, "mkcert")
 
+	// Detect architecture instead of hardcoding amd64
+	arch := "amd64"
+	if runtime.GOARCH == "arm64" {
+		arch = "arm64"
+	}
+
 	// Download mkcert
-	downloadCmd := fmt.Sprintf("curl -fsSL -o %s https://dl.filippo.io/mkcert/latest?for=linux/amd64", mkcertPath)
+	downloadCmd := fmt.Sprintf("curl -fsSL -o %s 'https://dl.filippo.io/mkcert/latest?for=linux/%s'", mkcertPath, arch)
 	if err := c.runShellCommand(downloadCmd); err != nil {
 		return fmt.Errorf("failed to download mkcert: %w", err)
 	}
@@ -141,6 +170,48 @@ func (c *CertificateInstaller) installMkcertLinux() error {
 		return fmt.Errorf("failed to make mkcert executable: %w", err)
 	}
 
+	return nil
+}
+
+// installMkcertWindows installs mkcert inside WSL2 Ubuntu, consistent with how
+// all other tools (Docker, k3d, kubectl, helm) are installed on Windows.
+func (c *CertificateInstaller) installMkcertWindows() error {
+	fmt.Println("Installing mkcert inside WSL2...")
+
+	installScript := `#!/bin/bash
+set -e
+
+# Check if mkcert is already installed
+if command -v mkcert &> /dev/null; then
+    echo "mkcert already installed in WSL2"
+    exit 0
+fi
+
+echo "Installing mkcert..."
+
+# Detect architecture
+ARCH="amd64"
+if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then
+    ARCH="arm64"
+fi
+
+# Download mkcert binary
+DOWNLOAD_URL="https://dl.filippo.io/mkcert/latest?for=linux/${ARCH}"
+curl -fsSL -o /tmp/mkcert "$DOWNLOAD_URL"
+sudo install -o root -g root -m 0755 /tmp/mkcert /usr/local/bin/mkcert
+rm -f /tmp/mkcert
+
+echo "mkcert installed successfully"
+`
+
+	cmd := exec.Command("wsl", "-d", "Ubuntu", "bash", "-c", installScript)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to install mkcert in WSL2: %w", err)
+	}
+
+	fmt.Println("✓ mkcert installed successfully in WSL2!")
 	return nil
 }
 
