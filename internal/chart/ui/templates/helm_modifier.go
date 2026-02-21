@@ -151,6 +151,12 @@ func (h *HelmValuesModifier) applyDeploymentMode(values map[string]interface{}, 
 		// Enable OSS, disable SaaS
 		h.ensureDeploymentSection(deployment, "oss", true)
 		h.ensureDeploymentSection(deployment, "saas", false)
+
+		// Disable integrated tools that are not needed for local OSS deployments.
+		// Authentik (SSO/IdP) is enabled by default in the app-of-apps chart but
+		// should NOT run in local environments — it forces SSO login which blocks
+		// access to the OpenFrame UI after a fresh bootstrap.
+		h.disableIntegratedToolsForLocal(values)
 	case types.DeploymentModeSaaS, types.DeploymentModeSaaSShared:
 		// Enable SaaS, disable OSS
 		// SaaS Shared uses the same Helm configuration as SaaS but with different repository
@@ -161,6 +167,35 @@ func (h *HelmValuesModifier) applyDeploymentMode(values map[string]interface{}, 
 	}
 
 	return nil
+}
+
+// disableIntegratedToolsForLocal disables SSO and other integrated tools that are
+// not appropriate for local development environments. The app-of-apps chart enables
+// these by default for production, but local/OSS deployments should not require SSO.
+func (h *HelmValuesModifier) disableIntegratedToolsForLocal(values map[string]interface{}) {
+	apps, ok := values["apps"].(map[string]interface{})
+	if !ok {
+		apps = make(map[string]interface{})
+		values["apps"] = apps
+	}
+
+	// Disable Authentik (SSO) — prevents forced login on the OpenFrame UI
+	h.setAppEnabled(apps, "authentik", false)
+
+	// Disable other integrated tools that are heavyweight and not needed locally
+	h.setAppEnabled(apps, "fleetmdm", false)
+	h.setAppEnabled(apps, "meshcentral", false)
+	h.setAppEnabled(apps, "tactical-rmm", false)
+}
+
+// setAppEnabled sets the enabled flag for an application in the apps section.
+func (h *HelmValuesModifier) setAppEnabled(apps map[string]interface{}, appName string, enabled bool) {
+	app, ok := apps[appName].(map[string]interface{})
+	if !ok {
+		app = make(map[string]interface{})
+		apps[appName] = app
+	}
+	app["enabled"] = enabled
 }
 
 // ensureDeploymentSection ensures a deployment section exists with the specified enabled state

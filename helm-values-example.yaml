@@ -377,26 +377,26 @@ apps:
     namespace: integrated-tools  # Kubernetes namespace for integrated tools
     syncWave: "3"     # Deploy in sync wave 3 (last)
     
-  authentik: 
-    enabled: true     # Identity and access management (SSO)
+  authentik:
+    enabled: false    # Identity and access management (SSO) — disabled for local/OSS deployments
     project: integrated-tools  # Use integrated-tools ArgoCD project
     namespace: integrated-tools  # Deploy to integrated-tools namespace
     syncWave: "3"     # Deploy in sync wave 3
-    
-  fleetmdm: 
-    enabled: true     # Mobile device management
+
+  fleetmdm:
+    enabled: false    # Mobile device management — disabled for local/OSS deployments
     project: integrated-tools  # Use integrated-tools ArgoCD project
     namespace: integrated-tools  # Deploy to integrated-tools namespace
     syncWave: "3"     # Deploy in sync wave 3
-    
-  meshcentral: 
-    enabled: true     # Remote management and monitoring
+
+  meshcentral:
+    enabled: false    # Remote management and monitoring — disabled for local/OSS deployments
     project: integrated-tools  # Use integrated-tools ArgoCD project
     namespace: integrated-tools  # Deploy to integrated-tools namespace
     syncWave: "3"     # Deploy in sync wave 3
-    
-  tactical-rmm: 
-    enabled: true     # Remote monitoring and management
+
+  tactical-rmm:
+    enabled: false    # Remote monitoring and management — disabled for local/OSS deployments
     project: integrated-tools  # Use integrated-tools ArgoCD project
     namespace: integrated-tools  # Deploy to integrated-tools namespace
     syncWave: "3"     # Deploy in sync wave 3
@@ -415,7 +415,7 @@ apps:
 # - Wave 0: Platform services (infrastructure - monitoring, ingress, certs)
 # - Wave 1: Datasources (data layer - databases, message queues, caches)
 # - Wave 2: Microservices + Client Tools (application layer + dev tools)
-# - Wave 3: Integrated Tools (external integrations - SSO, MDM, RMM)
+# - Wave 3: Integrated Tools (external integrations - SSO, MDM, RMM) — disabled by default for local/OSS
 #
 # Key differences from app-of-apps:
 # - No registry credentials (inherited from app-of-apps)

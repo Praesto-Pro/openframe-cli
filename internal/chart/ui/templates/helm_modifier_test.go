@@ -413,6 +413,78 @@ func TestHelmValuesModifier_WriteValues_InvalidPath(t *testing.T) {
 	assert.Contains(t, err.Error(), "failed to write updated helm values file")
 }
 
+func TestHelmValuesModifier_ApplyDeploymentMode_OSS_DisablesIntegratedTools(t *testing.T) {
+	modifier := NewHelmValuesModifier()
+
+	// Start with empty values
+	values := make(map[string]interface{})
+
+	config := &types.ChartConfiguration{
+		DeploymentMode:   ptrDeploymentMode(types.DeploymentModeOSS),
+		ModifiedSections: []string{"deployment"},
+	}
+
+	err := modifier.ApplyConfiguration(values, config)
+	assert.NoError(t, err)
+
+	// Verify deployment mode was set
+	deployment := values["deployment"].(map[string]interface{})
+	oss := deployment["oss"].(map[string]interface{})
+	assert.Equal(t, true, oss["enabled"])
+	saas := deployment["saas"].(map[string]interface{})
+	assert.Equal(t, false, saas["enabled"])
+
+	// Verify integrated tools are disabled for local OSS deployment
+	apps, ok := values["apps"].(map[string]interface{})
+	assert.True(t, ok, "apps section should be created")
+
+	authentik, ok := apps["authentik"].(map[string]interface{})
+	assert.True(t, ok, "authentik section should exist")
+	assert.Equal(t, false, authentik["enabled"], "authentik should be disabled for OSS")
+
+	fleetmdm, ok := apps["fleetmdm"].(map[string]interface{})
+	assert.True(t, ok)
+	assert.Equal(t, false, fleetmdm["enabled"], "fleetmdm should be disabled for OSS")
+
+	meshcentral, ok := apps["meshcentral"].(map[string]interface{})
+	assert.True(t, ok)
+	assert.Equal(t, false, meshcentral["enabled"], "meshcentral should be disabled for OSS")
+
+	tacticalrmm, ok := apps["tactical-rmm"].(map[string]interface{})
+	assert.True(t, ok)
+	assert.Equal(t, false, tacticalrmm["enabled"], "tactical-rmm should be disabled for OSS")
+}
+
+func TestHelmValuesModifier_ApplyDeploymentMode_SaaS_DoesNotDisableIntegratedTools(t *testing.T) {
+	modifier := NewHelmValuesModifier()
+
+	// Start with values that have integrated tools enabled
+	values := map[string]interface{}{
+		"apps": map[string]interface{}{
+			"authentik": map[string]interface{}{
+				"enabled": true,
+			},
+		},
+	}
+
+	config := &types.ChartConfiguration{
+		DeploymentMode:   ptrDeploymentMode(types.DeploymentModeSaaS),
+		ModifiedSections: []string{"deployment"},
+	}
+
+	err := modifier.ApplyConfiguration(values, config)
+	assert.NoError(t, err)
+
+	// Verify integrated tools are NOT disabled for SaaS deployment
+	apps := values["apps"].(map[string]interface{})
+	authentik := apps["authentik"].(map[string]interface{})
+	assert.Equal(t, true, authentik["enabled"], "authentik should remain enabled for SaaS")
+}
+
+func ptrDeploymentMode(mode types.DeploymentMode) *types.DeploymentMode {
+	return &mode
+}
+
 func TestHelmValuesModifier_GetCurrentIngressSettings(t *testing.T) {
 	modifier := NewHelmValuesModifier()
 
