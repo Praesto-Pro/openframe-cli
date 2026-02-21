@@ -27,7 +27,19 @@ func isMkcertInstalled() bool {
 		cmd := exec.Command("wsl", "-d", "Ubuntu", "command", "-v", "mkcert")
 		return cmd.Run() == nil
 	}
-	return commandExists("mkcert")
+	if commandExists("mkcert") {
+		return true
+	}
+	// Also check ~/bin where we install mkcert on Linux/macOS
+	// (~/bin may not be in the default shell PATH)
+	homeDir, err := os.UserHomeDir()
+	if err == nil {
+		mkcertPath := filepath.Join(homeDir, "bin", "mkcert")
+		if fileExists(mkcertPath) {
+			return true
+		}
+	}
+	return false
 }
 
 func areCertificatesGenerated() bool {
@@ -81,6 +93,11 @@ func (c *CertificateInstaller) Install() error {
 		}
 	}
 
+	// Ensure ~/bin is in PATH if that's where mkcert lives (Linux/macOS)
+	if runtime.GOOS != "windows" {
+		c.ensureMkcertInPath()
+	}
+
 	// Then generate certificates
 	return c.generateCertificates()
 }
@@ -94,6 +111,25 @@ func (c *CertificateInstaller) ForceRegenerate() error {
 
 	// Always regenerate certificates
 	return c.generateCertificates()
+}
+
+// ensureMkcertInPath adds ~/bin to PATH if mkcert is installed there but not on PATH.
+func (c *CertificateInstaller) ensureMkcertInPath() {
+	if commandExists("mkcert") {
+		return // already on PATH
+	}
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return
+	}
+	binDir := filepath.Join(homeDir, "bin")
+	mkcertPath := filepath.Join(binDir, "mkcert")
+	if fileExists(mkcertPath) {
+		currentPath := os.Getenv("PATH")
+		if !strings.Contains(currentPath, binDir) {
+			os.Setenv("PATH", binDir+":"+currentPath)
+		}
+	}
 }
 
 func (c *CertificateInstaller) installMkcert() error {
