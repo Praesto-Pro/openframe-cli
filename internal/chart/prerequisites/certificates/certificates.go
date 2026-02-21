@@ -136,6 +136,11 @@ func (c *CertificateInstaller) installMkcertMacOS() error {
 		if err := c.runShellCommand(downloadCmd); err != nil {
 			return fmt.Errorf("failed to download mkcert binary. Install Homebrew (https://brew.sh) or download manually from https://github.com/FiloSottile/mkcert: %w", err)
 		}
+		// Add ~/bin to PATH for the current process so generateCertificates() can find mkcert
+		currentPath := os.Getenv("PATH")
+		if !strings.Contains(currentPath, binDir) {
+			os.Setenv("PATH", binDir+":"+currentPath)
+		}
 	}
 	return nil
 }
@@ -222,6 +227,11 @@ echo "mkcert installed successfully"
 }
 
 func (c *CertificateInstaller) generateCertificates() error {
+	// On Windows, delegate entirely to WSL2 since mkcert lives there
+	if runtime.GOOS == "windows" {
+		return c.generateCertificatesWindows()
+	}
+
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return fmt.Errorf("failed to get home directory: %w", err)
@@ -391,6 +401,56 @@ func (c *CertificateInstaller) generateCertificates() error {
 		fmt.Sprintf("cd '%s' && mkcert -cert-file localhost.pem -key-file localhost-key.pem localhost 127.0.0.1 ::1 >/dev/null 2>&1", certDir))
 	if err := generateCmd.Run(); err != nil {
 		return fmt.Errorf("failed to generate certificates: %w", err)
+	}
+
+	return nil
+}
+
+// generateCertificatesWindows generates certificates inside WSL2 and copies them
+// to the Windows host. mkcert is installed in WSL2, so all mkcert commands must
+// run there.
+func (c *CertificateInstaller) generateCertificatesWindows() error {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("failed to get home directory: %w", err)
+	}
+
+	certDir := filepath.Join(homeDir, ".config", "openframe", "certs")
+	if err := os.MkdirAll(certDir, 0755); err != nil {
+		return fmt.Errorf("failed to create certificate directory: %w", err)
+	}
+
+	// Generate certs inside WSL2, then copy to the Windows cert directory.
+	// We use wslpath to convert the Windows path so WSL2 can write there directly.
+	script := fmt.Sprintf(`#!/bin/bash
+set -e
+
+# Install CA if not already done
+mkcert -install 2>/dev/null || true
+
+# Convert Windows cert directory to WSL path
+WIN_CERT_DIR="%s"
+WSL_CERT_DIR=$(wslpath -a "$WIN_CERT_DIR" 2>/dev/null || echo "")
+
+if [ -z "$WSL_CERT_DIR" ]; then
+    # Fallback: generate in WSL home and copy via Windows path
+    CERT_DIR="$HOME/.config/openframe/certs"
+    mkdir -p "$CERT_DIR"
+    cd "$CERT_DIR"
+    mkcert -cert-file localhost.pem -key-file localhost-key.pem localhost 127.0.0.1 ::1 >/dev/null 2>&1
+    echo "CERT_DIR=$CERT_DIR"
+else
+    mkdir -p "$WSL_CERT_DIR"
+    cd "$WSL_CERT_DIR"
+    mkcert -cert-file localhost.pem -key-file localhost-key.pem localhost 127.0.0.1 ::1 >/dev/null 2>&1
+fi
+`, certDir)
+
+	cmd := exec.Command("wsl", "-d", "Ubuntu", "bash", "-c", script)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to generate certificates in WSL2: %w", err)
 	}
 
 	return nil
