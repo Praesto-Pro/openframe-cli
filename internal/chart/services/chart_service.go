@@ -646,19 +646,25 @@ func (w *InstallationWorkflow) waitForArgoCDSync(ctx context.Context, config con
 func (w *InstallationWorkflow) buildConfiguration(req utilTypes.InstallationRequest, clusterName string, chartConfig *types.ChartConfiguration) (config.ChartInstallConfig, error) {
 	configBuilder := config.NewBuilder(w.chartService.operationsUI)
 
-	// Determine repository URL based on deployment mode
+	// Determine repository URL: explicit --repo flag takes priority,
+	// otherwise derive from deployment mode, otherwise fall back to default.
 	githubRepo := req.GitHubRepo
-	if chartConfig.DeploymentMode != nil {
-		// Always use deployment mode to determine repository URL if deployment mode is specified
-		// This ensures that SaaS Shared mode gets the correct repository
+	if chartConfig.DeploymentMode != nil && githubRepo == "" {
+		// No explicit repo override — use deployment mode to determine repository URL
 		githubRepo = types.GetRepositoryURL(*chartConfig.DeploymentMode)
+	}
+	if githubRepo == "" {
+		// Final fallback — no --repo and no deployment mode yet (interactive wizard)
+		githubRepo = "https://github.com/flamingo-stack/openframe-oss-tenant"
+	}
 
-		// Inject authentication token for private SaaS repositories (both Shared and Tenant)
-		if (*chartConfig.DeploymentMode == types.DeploymentModeSaaSShared || *chartConfig.DeploymentMode == types.DeploymentModeSaaS) && chartConfig.SaaSConfig != nil && chartConfig.SaaSConfig.RepositoryPassword != "" {
-			// Replace https:// with https://x-access-token:TOKEN@
-			// This format is required for GitHub PAT authentication in non-interactive mode
-			githubRepo = strings.Replace(githubRepo, "https://", "https://x-access-token:"+chartConfig.SaaSConfig.RepositoryPassword+"@", 1)
-		}
+	// Inject authentication token for private SaaS repositories (both Shared and Tenant)
+	if chartConfig.DeploymentMode != nil &&
+		(*chartConfig.DeploymentMode == types.DeploymentModeSaaSShared || *chartConfig.DeploymentMode == types.DeploymentModeSaaS) &&
+		chartConfig.SaaSConfig != nil && chartConfig.SaaSConfig.RepositoryPassword != "" {
+		// Replace https:// with https://x-access-token:TOKEN@
+		// This format is required for GitHub PAT authentication in non-interactive mode
+		githubRepo = strings.Replace(githubRepo, "https://", "https://x-access-token:"+chartConfig.SaaSConfig.RepositoryPassword+"@", 1)
 	}
 
 	// Convert deployment mode to string for builder

@@ -163,10 +163,8 @@ func (s *Service) buildClusterConfig(clusterName string) models.ClusterConfig {
 
 // installChartWithMode installs charts with deployment mode flags
 func (s *Service) installChartWithMode(clusterName, deploymentMode string, nonInteractive, verbose bool, kubeConfig *rest.Config, githubRepo, githubBranch string) error {
-	// Determine repo URL — use override if provided, otherwise derive from deployment mode
-	if githubRepo == "" {
-		githubRepo = "https://github.com/flamingo-stack/openframe-oss-tenant"
-	}
+	// githubRepo is left empty when user didn't pass --repo;
+	// buildConfiguration() will derive it from deployment mode.
 	if githubBranch == "" {
 		githubBranch = "main"
 	}

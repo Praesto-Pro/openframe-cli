@@ -109,6 +109,11 @@ func (c *CertificateInstaller) ForceRegenerate() error {
 		return fmt.Errorf("mkcert is not installed")
 	}
 
+	// Ensure ~/bin is in PATH if that's where mkcert lives (Linux/macOS)
+	if runtime.GOOS != "windows" {
+		c.ensureMkcertInPath()
+	}
+
 	// Always regenerate certificates
 	return c.generateCertificates()
 }
