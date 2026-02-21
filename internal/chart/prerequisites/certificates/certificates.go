@@ -170,6 +170,12 @@ func (c *CertificateInstaller) installMkcertLinux() error {
 		return fmt.Errorf("failed to make mkcert executable: %w", err)
 	}
 
+	// Add ~/bin to PATH for the current process so generateCertificates() can find mkcert
+	currentPath := os.Getenv("PATH")
+	if !strings.Contains(currentPath, binDir) {
+		os.Setenv("PATH", binDir+":"+currentPath)
+	}
+
 	return nil
 }
 
