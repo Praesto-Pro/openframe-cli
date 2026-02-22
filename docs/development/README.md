@@ -1,191 +1,180 @@
 # Development Documentation
 
-Welcome to the OpenFrame CLI development documentation. This section contains comprehensive guides for developers working on the OpenFrame CLI codebase, contributing to the project, or building custom extensions.
+This section contains comprehensive guides for developing with and contributing to OpenFrame CLI. Whether you're setting up a development environment, understanding the architecture, or contributing code, these guides will help you get started.
 
-## 📖 Documentation Overview
+## 🏗️ Architecture & Design
 
-This development section is organized into specialized guides covering all aspects of OpenFrame CLI development:
+Understanding how OpenFrame CLI is structured and how its components interact:
 
-### 🛠️ Setup and Environment
+- **[Architecture Overview](architecture/README.md)** - High-level system design, component relationships, and data flows
 
-Get your development environment ready for OpenFrame CLI contributions:
+## 🛠️ Development Setup
 
-- **[Environment Setup](setup/environment.md)** - IDE configuration, extensions, and development tools
-- **[Local Development](setup/local-development.md)** - Clone, build, and run OpenFrame CLI from source
+Get your development environment ready:
 
-### 🏗️ Architecture and Design
+- **[Environment Setup](setup/environment.md)** - IDE configuration, tools, and development dependencies
+- **[Local Development](setup/local-development.md)** - Clone, build, run, and debug OpenFrame CLI locally
 
-Understand the system architecture and design patterns:
+## 🔒 Security
 
-- **[Architecture Overview](architecture/README.md)** - High-level system design, component relationships, and data flow
+Security best practices and guidelines:
 
-### 🔐 Security
+- **[Security Guidelines](security/README.md)** - Authentication patterns, data protection, and vulnerability prevention
 
-Learn about security practices and implementation:
+## 🧪 Testing
 
-- **[Security Guidelines](security/README.md)** - Authentication, authorization, encryption, and security best practices
+Comprehensive testing approaches:
 
-### 🧪 Testing
+- **[Testing Guide](testing/README.md)** - Test structure, running tests, writing new tests, and coverage requirements
 
-Comprehensive testing strategies and implementation:
+## 🤝 Contributing  
 
-- **[Testing Overview](testing/README.md)** - Test structure, running tests, writing new tests, and coverage requirements
+Guidelines for contributing to the project:
 
-### 🤝 Contributing
+- **[Contributing Guidelines](contributing/guidelines.md)** - Code standards, review process, and submission guidelines
 
-Guidelines for contributing to the OpenFrame CLI project:
+## Quick Navigation
 
-- **[Contributing Guidelines](contributing/guidelines.md)** - Code style, branch naming, PR process, and review checklist
-
-## 🎯 Quick Navigation
-
-### For New Contributors
-
+### New Contributors
 If you're new to OpenFrame CLI development, start here:
+1. [Architecture Overview](architecture/README.md) - Understand the system
+2. [Environment Setup](setup/environment.md) - Configure your tools  
+3. [Local Development](setup/local-development.md) - Get the code running
+4. [Contributing Guidelines](contributing/guidelines.md) - Learn the process
 
-1. **[Environment Setup](setup/environment.md)** - Configure your development tools
-2. **[Local Development](setup/local-development.md)** - Get the code running locally  
-3. **[Architecture Overview](architecture/README.md)** - Understand the system design
-4. **[Contributing Guidelines](contributing/guidelines.md)** - Learn the development workflow
+### Experienced Developers
+Jump to specific areas:
+- **Architecture**: Deep dive into design patterns and component interactions
+- **Security**: Review security models and best practices
+- **Testing**: Understand test patterns and coverage expectations
 
-### For Platform Developers
+### Operations & DevOps
+Focus on deployment and operational aspects:
+- **Architecture**: Service dependencies and operational considerations
+- **Security**: Production security requirements and configurations
+- **Testing**: Integration and end-to-end testing strategies
 
-Building MSP services on OpenFrame? Focus on these guides:
-
-- **[Architecture Overview](architecture/README.md)** - Component integration patterns
-- **[Security Guidelines](security/README.md)** - MSP security requirements
-- **[Testing Overview](testing/README.md)** - Service testing strategies
-
-### For DevOps Engineers
-
-Integrating OpenFrame CLI into CI/CD? Check these resources:
-
-- **[Local Development](setup/local-development.md)** - Automation and scripting
-- **[Testing Overview](testing/README.md)** - Automated testing in pipelines
-- **[Architecture Overview](architecture/README.md)** - Deployment patterns
-
-## 🚀 Development Workflow Overview
+## Development Workflow Overview
 
 ```mermaid
-graph TD
-    Setup[Environment Setup] --> Clone[Clone Repository]
-    Clone --> Build[Build from Source]
-    Build --> Test[Run Tests]
-    Test --> Develop[Feature Development]
-    Develop --> TestLocal[Local Testing]
-    TestLocal --> PR[Create Pull Request]
-    PR --> Review[Code Review]
-    Review --> Merge[Merge to Main]
-    
-    Setup --> IDE[IDE Configuration]
-    IDE --> Extensions[Install Extensions]
-    
-    Develop --> Architecture[Study Architecture]
-    Architecture --> Security[Security Review]
-    Security --> Guidelines[Follow Guidelines]
+flowchart TD
+    A[Fork Repository] --> B[Setup Dev Environment]
+    B --> C[Create Feature Branch]
+    C --> D[Write Code & Tests]
+    D --> E[Run Local Tests]
+    E --> F{Tests Pass?}
+    F -->|No| D
+    F -->|Yes| G[Commit Changes]
+    G --> H[Push to Fork]
+    H --> I[Create Pull Request]
+    I --> J[Code Review]
+    J --> K{Review Approved?}
+    K -->|No| D
+    K -->|Yes| L[Merge to Main]
+    L --> M[CI/CD Pipeline]
+    M --> N[Deploy & Test]
 ```
 
-## 🛡️ Development Principles
+## Key Technologies
 
-OpenFrame CLI follows these core development principles:
+OpenFrame CLI is built with:
 
-### Clean Architecture
+| Technology | Purpose | Version |
+|------------|---------|---------|
+| **Go** | Primary language | 1.24.6+ |
+| **Cobra** | CLI framework | v1.8.1+ |
+| **Kubernetes** | Container orchestration | v1.31.2+ |
+| **K3D** | Local Kubernetes clusters | v5.0+ |
+| **Helm** | Package management | v3.10+ |
+| **ArgoCD** | GitOps deployments | v2.14+ |
+| **Telepresence** | Service intercepts | v2.10+ |
 
-- **Separation of Concerns**: Clear boundaries between CLI, services, providers, and UI
-- **Dependency Inversion**: High-level modules don't depend on low-level modules
-- **Interface Segregation**: Small, focused interfaces for better testability
-
-### Developer Experience
-
-- **Interactive Wizards**: User-friendly interfaces for complex operations
-- **Comprehensive Error Handling**: Clear error messages with actionable guidance
-- **Extensive Testing**: High test coverage with integration and unit tests
-
-### Platform Integration
-
-- **GitOps First**: Built-in ArgoCD integration for continuous delivery
-- **Kubernetes Native**: Deep integration with Kubernetes APIs and tools
-- **MSP Optimized**: Designed specifically for MSP platform requirements
-
-## 🔧 Technology Stack
-
-Understanding the technology foundation:
-
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **CLI Framework** | Cobra | Command structure and flag parsing |
-| **Terminal UI** | pterm, promptui | Interactive interfaces and styling |
-| **Kubernetes** | client-go | Kubernetes API interactions |
-| **Container Management** | K3D, Docker | Local cluster and container operations |
-| **GitOps** | ArgoCD, Helm | Continuous delivery and package management |
-| **Testing** | Testify, Go testing | Unit and integration testing |
-| **Configuration** | YAML, Viper | Configuration management |
-
-## 📦 Project Structure
+## Project Structure
 
 ```text
 openframe-cli/
 ├── cmd/                    # CLI command definitions
 │   ├── bootstrap/         # Bootstrap command
-│   ├── cluster/           # Cluster management commands  
+│   ├── cluster/           # Cluster management commands
 │   ├── chart/             # Chart installation commands
-│   └── dev/               # Development tools commands
-├── internal/              # Internal packages (not exported)
-│   ├── bootstrap/         # Bootstrap service logic
-│   ├── cluster/           # Cluster management services
-│   ├── chart/             # Chart installation services
-│   ├── dev/               # Development tool services
-│   └── shared/            # Shared utilities and components
+│   ├── dev/               # Development workflow commands
+│   └── root.go            # Root command setup
+├── internal/              # Internal packages
+│   ├── bootstrap/         # Bootstrap orchestration
+│   ├── cluster/           # Cluster lifecycle management
+│   ├── chart/             # Chart and ArgoCD integration
+│   ├── dev/               # Development tools
+│   └── shared/            # Common utilities
 ├── tests/                 # Test suites
 │   ├── integration/       # Integration tests
-│   ├── mocks/            # Test mocks and fixtures
-│   └── testutil/         # Testing utilities
-├── docs/                 # Documentation
-└── main.go               # Application entry point
+│   ├── mocks/             # Test mocks
+│   └── testutil/          # Test utilities
+├── docs/                  # Documentation
+├── examples/              # Usage examples
+├── scripts/               # Build and utility scripts
+├── go.mod                 # Go module definition
+├── go.sum                 # Go dependency checksums
+└── main.go                # Application entry point
 ```
 
-## 🎓 Learning Resources
+## Development Principles
 
-### Official Documentation
+### Code Quality
+- **Clean Architecture**: Clear separation of concerns with layered design
+- **Testability**: All components designed for easy testing and mocking
+- **Error Handling**: Comprehensive error handling with user-friendly messages
+- **Documentation**: Code is self-documenting with clear comments
 
-- **[OpenFrame CLI Architecture](./architecture/README.md)** - Complete architectural documentation
-- **API References** - Generated from source code comments
-- **Command References** - Comprehensive CLI command documentation
+### User Experience
+- **Interactive Design**: Wizard-style interfaces for complex operations
+- **Clear Feedback**: Progress indicators and status messages
+- **Error Recovery**: Helpful error messages with suggested solutions
+- **Consistency**: Uniform command patterns and flag usage
 
-### Video Resources
+### Operational Excellence
+- **Observability**: Comprehensive logging and monitoring capabilities
+- **Reliability**: Robust error handling and recovery mechanisms
+- **Performance**: Efficient resource usage and fast execution
+- **Security**: Secure defaults and best practices
 
-[![OpenFrame v0.5.2: Autonomous AI Agent Architecture for MSPs](https://img.youtube.com/vi/PexpoNdZtUk/maxresdefault.jpg)](https://www.youtube.com/watch?v=PexpoNdZtUk)
+## Getting Started
 
-### Community Resources
+### Prerequisites
+Before diving into development, ensure you have:
+- Go 1.24.6 or later installed
+- Docker and Kubernetes tools (kubectl, helm, k3d)
+- Git and a code editor/IDE
+- Basic familiarity with Kubernetes concepts
 
-- **OpenMSP Community**: https://www.openmsp.ai/
-- **Slack Workspace**: Real-time developer discussions
-- **GitHub Repository**: https://github.com/flamingo-stack/openframe-cli
+### Quick Start
+1. **Read the [Architecture Overview](architecture/README.md)** to understand the system
+2. **Follow the [Environment Setup](setup/environment.md)** guide
+3. **Complete the [Local Development](setup/local-development.md)** setup
+4. **Review [Contributing Guidelines](contributing/guidelines.md)** before making changes
 
-## 🤝 Getting Help
+## Community & Support
 
-### Development Support
+### Getting Help
+- **OpenMSP Slack**: [Join the community](https://join.slack.com/t/openmsp/shared_invite/zt-36bl7mx0h-3~U2nFH6nqHqoTPXMaHEHA) for development questions
+- **Documentation**: Browse these guides for detailed information
+- **Code Reviews**: Learn from existing pull requests and code reviews
 
-- **Architecture Questions**: Review the architecture documentation or ask in Slack
-- **Code Issues**: Check existing issues or create new ones via community channels
-- **Feature Requests**: Discuss ideas in the OpenMSP Slack community
-- **Security Concerns**: Follow responsible disclosure practices
+### Contributing
+We welcome contributions! Here's how to get involved:
+1. **Start Small**: Begin with bug fixes or documentation improvements
+2. **Discuss Large Changes**: Use Slack to discuss major features or architectural changes
+3. **Follow Guidelines**: Adhere to coding standards and review processes
+4. **Be Patient**: Maintain a collaborative and respectful approach
 
-### Contributing Process
+### Code of Conduct
+- Be respectful and inclusive in all interactions
+- Focus on constructive feedback and learning
+- Help others learn and grow in the community
+- Follow the project's established patterns and conventions
 
-1. **Read Guidelines**: Start with [Contributing Guidelines](contributing/guidelines.md)
-2. **Set Up Environment**: Follow [Environment Setup](setup/environment.md)
-3. **Understand Architecture**: Review [Architecture Overview](architecture/README.md)
-4. **Write Tests**: Follow [Testing Overview](testing/README.md)
-5. **Follow Security**: Implement [Security Guidelines](security/README.md)
+---
 
-## 🎯 Development Goals
-
-The OpenFrame CLI development focuses on:
-
-- **Developer Productivity**: Streamlined workflows for MSP development
-- **Platform Reliability**: Robust, tested, and secure infrastructure tools
-- **Community Growth**: Enabling contributions and extensions
-- **MSP Excellence**: Purpose-built tools for managed service providers
-
-Ready to contribute? Start with the [Environment Setup](setup/environment.md) guide and join the OpenFrame CLI development community!
+Ready to start developing? Choose your path:
+- **New to the project**: Start with [Architecture Overview](architecture/README.md)
+- **Ready to code**: Jump to [Local Development](setup/local-development.md)  
+- **Want to contribute**: Review [Contributing Guidelines](contributing/guidelines.md)

@@ -1,71 +1,93 @@
 # Quick Start Guide
 
-Get OpenFrame CLI running in under 5 minutes with this streamlined setup process.
+Get OpenFrame CLI up and running in 5 minutes! This guide will walk you through installing OpenFrame CLI and bootstrapping your first environment.
 
-## TL;DR Installation
+[![OpenFrame: 5-Minute MSP Platform Walkthrough - Cut Vendor Costs & Automate Ops](https://img.youtube.com/vi/er-z6IUnAps/maxresdefault.jpg)](https://www.youtube.com/watch?v=er-z6IUnAps)
+
+## TL;DR - 5-Minute Setup
+
+If you have all prerequisites installed, here's the fastest path:
 
 ```bash
-# 1. Download OpenFrame CLI
-# Windows AMD64
-curl -LO https://github.com/flamingo-stack/openframe-cli/releases/latest/download/openframe-cli_windows_amd64.zip
-unzip openframe-cli_windows_amd64.zip
+# 1. Download and install OpenFrame CLI (choose your platform)
+# Linux/macOS
+curl -fsSL https://github.com/flamingo-stack/openframe-cli/releases/latest/download/openframe-cli_linux_amd64.tar.gz | tar -xz
+sudo mv openframe /usr/local/bin/
 
-# Linux/macOS - Replace with your platform
-curl -LO https://github.com/flamingo-stack/openframe-cli/releases/latest/download/openframe-cli_linux_amd64.tar.gz
-tar -xzf openframe-cli_linux_amd64.tar.gz
+# Windows (download manually)
+# Download: https://github.com/flamingo-stack/openframe-cli/releases/latest/download/openframe-cli_windows_amd64.zip
 
-# 2. Make executable and add to PATH (Linux/macOS)
-chmod +x openframe-cli
-sudo mv openframe-cli /usr/local/bin/openframe
-
-# 3. Verify installation
+# 2. Verify installation
 openframe --version
 
-# 4. Bootstrap complete environment
+# 3. Bootstrap complete environment
 openframe bootstrap
 
-# 5. Access ArgoCD dashboard
-kubectl port-forward -n argocd svc/argocd-server 8080:443 &
-open https://localhost:8080
+# 4. Check cluster status
+openframe cluster status
 ```
 
-## Step-by-Step Installation
+That's it! Continue reading for detailed steps and explanations.
 
-### Step 1: Download OpenFrame CLI
+## Step 1: Install OpenFrame CLI
+
+### Option A: Download Pre-built Binary (Recommended)
 
 Choose your platform and download the latest release:
 
-**Windows AMD64:**
+#### Linux (AMD64)
 ```bash
-curl -LO https://github.com/flamingo-stack/openframe-cli/releases/latest/download/openframe-cli_windows_amd64.zip
+curl -fsSL https://github.com/flamingo-stack/openframe-cli/releases/latest/download/openframe-cli_linux_amd64.tar.gz | tar -xz
+sudo mv openframe /usr/local/bin/
+chmod +x /usr/local/bin/openframe
 ```
 
-**Linux AMD64:**
+#### Linux (ARM64)
 ```bash
-curl -LO https://github.com/flamingo-stack/openframe-cli/releases/latest/download/openframe-cli_linux_amd64.tar.gz
+curl -fsSL https://github.com/flamingo-stack/openframe-cli/releases/latest/download/openframe-cli_linux_arm64.tar.gz | tar -xz
+sudo mv openframe /usr/local/bin/
+chmod +x /usr/local/bin/openframe
 ```
 
-**macOS:**
+#### macOS (AMD64)
 ```bash
-curl -LO https://github.com/flamingo-stack/openframe-cli/releases/latest/download/openframe-cli_darwin_amd64.tar.gz
+curl -fsSL https://github.com/flamingo-stack/openframe-cli/releases/latest/download/openframe-cli_darwin_amd64.tar.gz | tar -xz
+sudo mv openframe /usr/local/bin/
+chmod +x /usr/local/bin/openframe
 ```
 
-### Step 2: Extract and Install
-
-**Windows:**
+#### macOS (Apple Silicon)
 ```bash
-unzip openframe-cli_windows_amd64.zip
-# Add the directory to your PATH environment variable
+curl -fsSL https://github.com/flamingo-stack/openframe-cli/releases/latest/download/openframe-cli_darwin_arm64.tar.gz | tar -xz
+sudo mv openframe /usr/local/bin/
+chmod +x /usr/local/bin/openframe
 ```
 
-**Linux/macOS:**
+#### Windows (AMD64)
+1. Download: https://github.com/flamingo-stack/openframe-cli/releases/latest/download/openframe-cli_windows_amd64.zip
+2. Extract the ZIP file
+3. Move `openframe.exe` to a directory in your `PATH`
+4. Open WSL2 terminal and verify access
+
+### Option B: Build from Source
+
+If you have Go 1.24.6+ installed:
+
 ```bash
-tar -xzf openframe-cli_linux_amd64.tar.gz
-chmod +x openframe-cli
-sudo mv openframe-cli /usr/local/bin/openframe
+# Clone the repository
+git clone https://github.com/flamingo-stack/openframe-cli.git
+cd openframe-cli
+
+# Build the binary
+go build -o openframe main.go
+
+# Move to PATH
+sudo mv openframe /usr/local/bin/
 ```
 
-### Step 3: Verify Installation
+## Step 2: Verify Installation
+
+Confirm OpenFrame CLI is installed correctly:
 
 ```bash
 openframe --version
@@ -73,195 +95,261 @@ openframe --version
 
 Expected output:
 ```text
-OpenFrame CLI v1.0.0
-Commit: abc123def
-Built: 2024-01-01T00:00:00Z
+openframe version v1.x.x (commit: abc123, built: 2024-01-01)
 ```
 
-## One-Command Setup
+Check available commands:
+```bash
+openframe --help
+```
 
-The fastest way to get a complete OpenFrame environment:
+You should see the main command groups:
+- `bootstrap` - Complete environment setup
+- `cluster` - Kubernetes cluster management
+- `chart` - Helm chart and ArgoCD management
+- `dev` - Development tools and workflows
+
+## Step 3: Bootstrap Your First Environment
+
+The bootstrap command creates a complete OpenFrame environment with a single command:
 
 ```bash
 openframe bootstrap
 ```
 
-This single command will:
+### Interactive Bootstrap
 
-1. ✅ **Check Prerequisites** - Verify Docker, install missing tools
-2. ✅ **Create K3D Cluster** - Local Kubernetes cluster with networking
-3. ✅ **Install ArgoCD** - GitOps continuous delivery platform  
-4. ✅ **Deploy Charts** - App-of-apps pattern for service management
-5. ✅ **Configure Certificates** - Local HTTPS with trusted certificates
-6. ✅ **Verify Health** - Ensure all services are running correctly
-
-### Bootstrap Process
+The command will guide you through setup with prompts:
 
 ```text
-🚀 OpenFrame Bootstrap
-├── Prerequisites Check ✓
-├── Creating K3D cluster "openframe-local" ✓
-├── Installing ArgoCD ✓
-├── Configuring GitOps repository ✓
-├── Deploying applications ✓
-├── Generating certificates ✓
-└── Verification complete ✓
+🚀 OpenFrame Bootstrap Wizard
 
-🎉 Your OpenFrame environment is ready!
+? Select deployment mode:
+  > oss-tenant (Single tenant, open source)
+    saas-tenant (Multi-tenant SaaS mode) 
+    saas-shared (Shared SaaS infrastructure)
 
-Access Points:
-• ArgoCD: https://argocd.local.openframe.ai
-• API Gateway: https://api.local.openframe.ai
-• Documentation: https://docs.local.openframe.ai
+? Enable verbose logging? (y/N): y
 
-Next Steps:
-• Run 'openframe cluster status' to view cluster details
-• Use 'openframe dev intercept' for service development
-• Visit the First Steps guide for feature exploration
+🔍 Checking prerequisites...
+✅ Docker is running
+✅ kubectl is available  
+✅ Helm is available
+✅ K3D is available
+
+🎯 Creating K3D cluster...
+✅ Cluster 'openframe-local' created
+
+🎭 Installing ArgoCD...
+✅ ArgoCD installed and ready
+
+📦 Installing application charts...
+✅ App-of-apps synchronized
+✅ All applications healthy
+
+🎉 OpenFrame environment is ready!
 ```
 
-## Verify Your Installation
+### Non-Interactive Bootstrap
+
+For scripts and CI/CD, use flags to skip prompts:
+
+```bash
+openframe bootstrap \
+  --mode=oss-tenant \
+  --non-interactive \
+  --verbose
+```
+
+## Step 4: Verify Your Environment
 
 ### Check Cluster Status
-
 ```bash
 openframe cluster status
 ```
 
-### List Running Services
+Expected output:
+```text
+📊 Cluster Status: openframe-local
 
-```bash
-kubectl get pods -A
+Cluster Info:
+  Name: openframe-local
+  Status: Running ✅
+  Nodes: 1 (1 ready)
+  Kubernetes Version: v1.28.6+k3s1
+
+Resource Usage:
+  CPU: 2 cores (25% used)
+  Memory: 8Gi (45% used)  
+  Storage: 50Gi (12% used)
+
+Key Services:
+  ArgoCD: Healthy ✅
+  Traefik: Healthy ✅
+  CoreDNS: Healthy ✅
 ```
 
-### Access ArgoCD Dashboard
+### Access ArgoCD UI
+The bootstrap process installs ArgoCD. Access the web interface:
 
 ```bash
-# Port forward ArgoCD (run in background)
-kubectl port-forward -n argocd svc/argocd-server 8080:443 &
-
-# Get admin password
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
-
-# Open browser
-open https://localhost:8080
+# Get ArgoCD URL and credentials
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
+kubectl port-forward svc/argocd-server -n argocd 8080:443
 ```
 
-**Login Credentials:**
-- Username: `admin`
-- Password: Use the decoded secret from above
+Then open: http://localhost:8080
+- Username: `admin`  
+- Password: (from the command above)
 
-## Your First OpenFrame Workflow
-
-### 1. Explore Available Commands
-
+### View Running Applications
 ```bash
-openframe --help
-```
-
-### 2. Check Cluster Information
-
-```bash
-# Detailed cluster status
-openframe cluster status --detailed
-
-# List all clusters
-openframe cluster list
-```
-
-### 3. View Deployed Applications
-
-```bash
-# ArgoCD applications
-kubectl get applications -n argocd
-
-# All pods across namespaces
+# List all pods across namespaces
 kubectl get pods --all-namespaces
+
+# Check ArgoCD applications
+kubectl get applications -n argocd
 ```
 
-### 4. Development Workflow
+## Step 5: Test Basic Functionality
 
+### Create a Test Namespace
 ```bash
-# Start a development intercept
-openframe dev intercept
-
-# Generate a new service scaffold
-openframe dev scaffold
+kubectl create namespace test-app
+kubectl get namespaces
 ```
+
+### Deploy a Simple Application
+```bash
+# Create a test deployment
+kubectl create deployment nginx --image=nginx:latest -n test-app
+kubectl expose deployment nginx --port=80 --target-port=80 -n test-app
+
+# Check deployment
+kubectl get pods -n test-app
+kubectl get svc -n test-app
+```
+
+### Test Service Access
+```bash
+# Port forward to test connectivity
+kubectl port-forward svc/nginx -n test-app 8081:80 &
+
+# Test the service
+curl http://localhost:8081
+
+# Clean up
+kill %1  # Stop port-forward
+kubectl delete namespace test-app
+```
+
+## What Just Happened?
+
+The bootstrap process created:
+
+1. **K3D Cluster**: A lightweight Kubernetes cluster running in Docker
+2. **ArgoCD**: GitOps deployment tool for application management  
+3. **Traefik**: Ingress controller for routing traffic
+4. **Core Services**: DNS, metrics, and monitoring components
+5. **Application Templates**: Ready-to-use deployment patterns
 
 ## Expected Results
 
-After successful bootstrap, you should see:
+After successful bootstrap:
 
-### ✅ Running Services
+| Component | Status | Access Method |
+|-----------|--------|---------------|
+| **Kubernetes API** | ✅ Running | `kubectl` commands |
+| **ArgoCD UI** | ✅ Running | Port forward to 8080 |
+| **Traefik Dashboard** | ✅ Running | Port forward to 9000 |
+| **Container Registry** | ✅ Running | Docker daemon |
 
+## Troubleshooting
+
+### Bootstrap Fails with Docker Error
 ```bash
-kubectl get pods -A
-```
-```text
-NAMESPACE     NAME                                READY   STATUS
-argocd        argocd-server-xxx                   1/1     Running
-argocd        argocd-application-controller-xxx   1/1     Running  
-argocd        argocd-repo-server-xxx              1/1     Running
-kube-system   coredns-xxx                         1/1     Running
-```
+# Check Docker status
+docker ps
+docker info
 
-### ✅ Network Access
-
-- Local services accessible via `.local.openframe.ai` domains
-- HTTPS certificates trusted by your browser
-- Port forwarding available for external access
-
-### ✅ GitOps Ready
-
-- ArgoCD monitoring your configured Git repositories
-- Automatic synchronization of application manifests
-- Visual application dependency graph
-
-## Troubleshooting Quick Issues
-
-### Docker Not Running
-
-```bash
-# Start Docker service
-sudo systemctl start docker  # Linux
-# or restart Docker Desktop application
+# Restart Docker if needed
+sudo systemctl restart docker  # Linux
+# or restart Docker Desktop on macOS/Windows
 ```
 
-### Port Conflicts
-
+### Kubectl Cannot Connect
 ```bash
-# Check what's using common ports
-lsof -i :8080
-lsof -i :6443
+# Check kubeconfig
+kubectl config current-context
+kubectl config get-contexts
 
-# Kill conflicting processes or use different ports
+# Switch to openframe context if needed
+kubectl config use-context k3d-openframe-local
 ```
 
-### Certificate Issues
-
+### ArgoCD Not Accessible
 ```bash
-# Regenerate certificates
-mkcert -install
-openframe chart install --regenerate-certs
+# Check ArgoCD pods
+kubectl get pods -n argocd
+
+# Restart ArgoCD if needed
+kubectl rollout restart deployment argocd-server -n argocd
+```
+
+### Port Already in Use
+```bash
+# Find and kill processes using required ports
+lsof -ti:6443,8080,9000 | xargs kill -9
+
+# Or use different ports
+kubectl port-forward svc/argocd-server -n argocd 8081:443
 ```
 
 ## Next Steps
 
-🎉 **Congratulations!** You now have a fully functional OpenFrame environment.
+🎉 **Congratulations!** You now have a running OpenFrame environment. Here's what to explore next:
 
-Continue your journey:
+- **[First Steps Guide](first-steps.md)** - Learn key workflows and features
+- **[Architecture Overview](../development/architecture/README.md)** - Understand how components work together  
+- **[Development Setup](../development/setup/local-development.md)** - Configure your development environment
 
-1. **[First Steps Guide](first-steps.md)** - Explore key features and workflows
-2. **[Development Setup](../development/setup/local-development.md)** - Configure your IDE and development environment  
-3. **[Architecture Overview](../development/architecture/README.md)** - Understand the system design
+## Common Next Actions
 
-## Need Help?
+### Deploy Your First Application
+```bash
+# Use ArgoCD to deploy from Git
+openframe chart install my-app \
+  --repo=https://github.com/your-org/your-app \
+  --path=helm-chart
+```
 
-- **Community Support**: Join our Slack at https://www.openmsp.ai/
-- **Documentation**: Explore additional guides in this documentation
-- **Video Tutorials**: Watch our YouTube channel for walkthroughs
+### Start Local Development
+```bash
+# Intercept a service for local development
+openframe dev intercept my-service \
+  --namespace=default \
+  --port=8080:3000
+```
 
-[![OpenFrame Product Walkthrough (Beta Access)](https://img.youtube.com/vi/awc-yAnkhIo/maxresdefault.jpg)](https://www.youtube.com/watch?v=awc-yAnkhIo)
+### Explore the Environment
+```bash
+# List available commands
+openframe --help
 
-You're now ready to build and deploy MSP services with OpenFrame!
+# Get cluster information
+openframe cluster list
+openframe cluster status
+
+# Check chart installations
+openframe chart list
+```
+
+## Getting Help
+
+Need assistance? The OpenFrame community is here to help:
+
+- **OpenMSP Slack**: [Join the community](https://join.slack.com/t/openmsp/shared_invite/zt-36bl7mx0h-3~U2nFH6nqHqoTPXMaHEHA)
+- **Documentation**: Browse other guides in this repository
+- **GitHub Issues**: Report bugs or request features (but use Slack for general support)
+
+> **Note**: All community support happens in Slack - we don't monitor GitHub Issues for support requests.
