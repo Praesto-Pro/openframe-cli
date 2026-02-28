@@ -1563,7 +1563,7 @@ func (h *HelmManager) showArgoCDDiagnostics(ctx context.Context, clusterName str
 				continue
 			}
 			pterm.Info.Printf("--- Describing pod: %s ---\n", pod)
-			describePodArgs := append(baseArgs, "describe", "pod", pod, "-n", "argocd")
+			describePodArgs := append(baseArgs, "describe", pod, "-n", "argocd")
 			descResult, descErr := h.executor.ExecuteWithOptions(ctx, executor.ExecuteOptions{
 				Command: "kubectl",
 				Args:    describePodArgs,

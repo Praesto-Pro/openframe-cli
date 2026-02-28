@@ -97,7 +97,7 @@ notifications:
     requests:
       cpu: 50m
       memory: 64Mi
-    lrequests:
+    limits:
       cpu: 100m
       memory: 128Mi
 `
